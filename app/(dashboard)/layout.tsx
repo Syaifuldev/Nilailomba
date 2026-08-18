@@ -4,6 +4,9 @@ import { useState } from 'react'
 import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
 
+// Force dynamic rendering — dashboard uses Supabase auth which needs browser context
+export const dynamic = 'force-dynamic'
+
 export default function DashboardLayout({
   children,
 }: {
