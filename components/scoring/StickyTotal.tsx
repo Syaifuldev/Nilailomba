@@ -119,26 +119,6 @@ export default function StickyTotal({
                     Reset
                   </Button>
                   <Button
-                    variant="outline"
-                    size="sm"
-                    icon={<FileText className="h-3.5 w-3.5" />}
-                    onClick={onDraft}
-                    loading={actionLoading}
-                    id="save-draft-btn"
-                  >
-                    Simpan Draft
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    icon={<Save className="h-3.5 w-3.5" />}
-                    onClick={onSave}
-                    loading={actionLoading}
-                    id="save-scores-btn"
-                  >
-                    Simpan
-                  </Button>
-                  <Button
                     variant="primary"
                     size="sm"
                     icon={<Lock className="h-3.5 w-3.5" />}

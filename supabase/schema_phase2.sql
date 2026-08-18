@@ -161,6 +161,14 @@ CREATE POLICY "wudu_scores_update"
           AND judges.user_id = auth.uid()
       )
     )
+  )
+  WITH CHECK (
+    public.get_user_role() = 'admin'
+    OR EXISTS (
+      SELECT 1 FROM public.judges
+      WHERE judges.id = judge_id
+        AND judges.user_id = auth.uid()
+    )
   );
 
 -- DELETE: admin only
@@ -209,6 +217,14 @@ CREATE POLICY "prayer_scores_update"
         WHERE judges.id = prayer_scores.judge_id
           AND judges.user_id = auth.uid()
       )
+    )
+  )
+  WITH CHECK (
+    public.get_user_role() = 'admin'
+    OR EXISTS (
+      SELECT 1 FROM public.judges
+      WHERE judges.id = judge_id
+        AND judges.user_id = auth.uid()
     )
   );
 

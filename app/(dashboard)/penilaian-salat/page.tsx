@@ -205,7 +205,6 @@ export default function PenilaianSalatPage() {
                   <th className="px-3 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider w-16">Maks</th>
                   <th className="px-3 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider w-24">Jml Kesalahan</th>
                   <th className="px-3 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider w-44">Nilai</th>
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Catatan</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -268,18 +267,6 @@ export default function PenilaianSalatPage() {
                           />
                         </div>
                       </td>
-                      {/* Notes */}
-                      <td className="px-3 py-3 align-top pt-4">
-                        <input
-                          type="text"
-                          placeholder="Catatan..."
-                          value={row.notes}
-                          disabled={isReadOnly}
-                          onChange={(e) => scoring.updateScore(row.id, row.error_count, row.score, e.target.value)}
-                          className="w-full text-xs rounded-xl border border-slate-200 px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-400 disabled:bg-slate-50 disabled:text-slate-400"
-                          id={`salat-note-${row.id}`}
-                        />
-                      </td>
                     </tr>
                   )
                 })}
@@ -298,7 +285,6 @@ export default function PenilaianSalatPage() {
                       {scoring.totalScore}
                     </span>
                   </td>
-                  <td />
                 </tr>
               </tfoot>
             </table>
@@ -361,17 +347,6 @@ export default function PenilaianSalatPage() {
                     onChange={(v) => scoring.updateScore(row.id, row.error_count, v, row.notes)}
                   />
                 </div>
-
-                {/* Notes */}
-                <input
-                  type="text"
-                  placeholder="Catatan (opsional)..."
-                  value={row.notes}
-                  disabled={isReadOnly}
-                  onChange={(e) => scoring.updateScore(row.id, row.error_count, row.score, e.target.value)}
-                  className="w-full text-xs rounded-xl border border-slate-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-400 disabled:bg-slate-100 disabled:text-slate-400"
-                  id={`salat-note-mobile-${row.id}`}
-                />
               </div>
             ))}
 
