@@ -227,7 +227,7 @@ export default function JuriPage() {
           { value: '', label: '-- Tidak ditautkan ke akun login --' },
           ...profiles.map(p => ({
             value: p.id,
-            label: p.full_name || p.username || 'Tanpa Nama'
+            label: p.full_name || p.username || `Tanpa Nama (ID: ${p.id.slice(0, 6)})`
           }))
         ]}
       />
