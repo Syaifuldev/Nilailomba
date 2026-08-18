@@ -225,10 +225,14 @@ export default function JuriPage() {
         }
         options={[
           { value: '', label: '-- Tidak ditautkan ke akun login --' },
-          ...profiles.map(p => ({
-            value: p.id,
-            label: p.full_name || p.username || `Tanpa Nama (ID: ${p.id.slice(0, 6)})`
-          }))
+          ...profiles.map(p => {
+            const displayName = p.full_name || p.username || p.email || `Tanpa Nama (ID: ${p.id.slice(0, 6)})`
+            const emailHint = p.email ? ` - ${p.email}` : ''
+            return {
+              value: p.id,
+              label: p.full_name || p.username ? `${displayName}${emailHint}` : displayName
+            }
+          })
         ]}
       />
       <Input
