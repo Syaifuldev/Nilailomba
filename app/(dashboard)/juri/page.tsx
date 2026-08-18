@@ -10,8 +10,9 @@ import Select from '@/components/ui/Select'
 import Table from '@/components/ui/Table'
 import Modal, { ConfirmModal } from '@/components/ui/Modal'
 import { StatusBadge } from '@/components/ui/Badge'
-import type { Judge, JudgingCategory } from '@/types'
+import type { Judge, JudgingCategory, Profile } from '@/types'
 import { judgingCategoryLabel, formatDateTime } from '@/lib/utils'
+import { getJuriProfiles } from '@/services/judges'
 
 const categoryOptions = [
   { value: 'wudu', label: 'Wudu' },
@@ -23,12 +24,14 @@ interface JudgeForm {
   judge_name: string
   judging_category: JudgingCategory
   status: boolean
+  user_id: string | null
 }
 
 const defaultForm: JudgeForm = {
   judge_name: '',
   judging_category: 'wudu',
   status: true,
+  user_id: null,
 }
 
 export default function JuriPage() {
@@ -42,9 +45,13 @@ export default function JuriPage() {
   const [form, setForm] = useState<JudgeForm>(defaultForm)
   const [formErrors, setFormErrors] = useState<Partial<JudgeForm>>({})
   const [actionLoading, setActionLoading] = useState(false)
+  const [profiles, setProfiles] = useState<Profile[]>([])
 
   useEffect(() => {
     fetchJudges()
+    getJuriProfiles().then(res => {
+      if (res.data) setProfiles(res.data)
+    })
   }, [fetchJudges])
 
   const filtered = useMemo(() => {
@@ -73,6 +80,7 @@ export default function JuriPage() {
       judge_name: form.judge_name.trim(),
       judging_category: form.judging_category,
       status: form.status,
+      user_id: form.user_id,
     })
     setActionLoading(false)
     if (ok) {
@@ -88,6 +96,7 @@ export default function JuriPage() {
       judge_name: form.judge_name.trim(),
       judging_category: form.judging_category,
       status: form.status,
+      user_id: form.user_id,
     })
     setActionLoading(false)
     if (ok) setModalEdit(null)
@@ -177,6 +186,7 @@ export default function JuriPage() {
                       judge_name: row.judge_name,
                       judging_category: row.judging_category,
                       status: row.status,
+                      user_id: row.user_id,
                     })
                     setFormErrors({})
                     setModalEdit(row)
@@ -206,6 +216,21 @@ export default function JuriPage() {
 
   const JudgeFormFields = () => (
     <div className="space-y-4">
+      <Select
+        id="judge-user-select"
+        label="User Akun Login (Opsional)"
+        value={form.user_id ?? ''}
+        onChange={(e) =>
+          setForm({ ...form, user_id: e.target.value || null })
+        }
+        options={[
+          { value: '', label: '-- Tidak ditautkan ke akun login --' },
+          ...profiles.map(p => ({
+            value: p.id,
+            label: p.full_name || p.username || 'Tanpa Nama'
+          }))
+        ]}
+      />
       <Input
         id="judge-name-input"
         label="Nama Juri"

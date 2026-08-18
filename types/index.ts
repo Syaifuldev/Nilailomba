@@ -101,6 +101,7 @@ export interface JudgeFormData {
   judge_name: string
   judging_category: JudgingCategory
   status: boolean
+  user_id?: string | null
   email?: string
   password?: string
   username?: string

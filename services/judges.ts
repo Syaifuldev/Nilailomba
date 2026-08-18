@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/client'
-import type { Judge, JudgeFormData, ApiResponse } from '@/types'
+import type { Judge, JudgeFormData, ApiResponse, Profile } from '@/types'
 
 // ─── Get all judges ───────────────────────────────────────────────────────────
 export async function getJudges(): Promise<ApiResponse<Judge[]>> {
@@ -10,6 +10,19 @@ export async function getJudges(): Promise<ApiResponse<Judge[]>> {
       *,
       profile:profiles(id, username, full_name, role)
     `)
+    .order('created_at', { ascending: true })
+
+  if (error) return { data: null, error: error.message }
+  return { data, error: null }
+}
+
+// ─── Get all juri profiles ───────────────────────────────────────────────────
+export async function getJuriProfiles(): Promise<ApiResponse<Profile[]>> {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('role', 'juri')
     .order('created_at', { ascending: true })
 
   if (error) return { data: null, error: error.message }
@@ -40,6 +53,7 @@ export async function createJudge(
   const { data, error } = await supabase
     .from('judges')
     .insert({
+      user_id: formData.user_id || null,
       judge_name: formData.judge_name,
       judging_category: formData.judging_category,
       status: formData.status,
@@ -60,6 +74,7 @@ export async function updateJudge(
   const { data, error } = await supabase
     .from('judges')
     .update({
+      user_id: formData.user_id || null,
       judge_name: formData.judge_name,
       judging_category: formData.judging_category,
       status: formData.status,
