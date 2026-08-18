@@ -21,7 +21,7 @@ export function useAuth() {
       .from('profiles')
       .select('*')
       .eq('id', authUser.id)
-      .single()
+      .maybeSingle()
 
     setUser({
       id: authUser.id,
@@ -50,6 +50,7 @@ export function useAuth() {
 
   const signOut = async () => {
     await supabase.auth.signOut()
+    window.location.href = '/login'
   }
 
   const isAdmin = user?.profile?.role === 'admin'

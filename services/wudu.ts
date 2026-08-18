@@ -143,7 +143,7 @@ export async function getJudgeByUserId(userId: string) {
     .select('*')
     .eq('user_id', userId)
     .eq('status', true)
-    .single()
+    .maybeSingle()
 
   if (error) return null
   return data

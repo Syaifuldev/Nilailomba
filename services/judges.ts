@@ -26,7 +26,7 @@ export async function getJudge(id: string): Promise<ApiResponse<Judge>> {
       profile:profiles(id, username, full_name, role)
     `)
     .eq('id', id)
-    .single()
+    .maybeSingle()
 
   if (error) return { data: null, error: error.message }
   return { data, error: null }
