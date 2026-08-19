@@ -61,7 +61,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row relative overflow-hidden">
+    <div className="min-h-screen bg-white flex flex-col md:flex-row relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute -bottom-40 -left-40 h-[600px] w-[600px] rounded-full bg-[var(--color-secondary)]/10 blur-[100px] pointer-events-none" />
 
@@ -73,7 +73,7 @@ export default function LoginPage() {
       </div>
 
       {/* Right side - Login Form */}
-      <div className="flex-1 flex items-center justify-center p-6 sm:p-12 z-10">
+      <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-12 z-10">
         <div className="w-full max-w-md bg-white rounded-3xl p-8 sm:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
           <h2 className="text-2xl font-bold text-slate-900 mb-2">Selamat Datang</h2>
           <p className="text-sm text-slate-500 mb-8">Silakan masuk untuk melanjutkan</p>
@@ -139,6 +139,11 @@ export default function LoginPage() {
             </div>
           </form>
         </div>
+
+        {/* Footer Copyright */}
+        <p className="mt-8 text-center text-xs text-slate-400 font-medium">
+          © {new Date().getFullYear()} SIMPATI MAPSI - Design by Syaiful Dev
+        </p>
       </div>
     </div>
   )
