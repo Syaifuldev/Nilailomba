@@ -158,21 +158,28 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
       </nav>
 
       {/* User info & logout */}
-      <div className="border-t border-slate-100 p-3">
-        <div className="mb-2 px-2 py-1.5">
-          <p className="text-xs font-medium text-slate-900 truncate">
-            {user?.profile?.full_name ?? user?.email ?? 'Pengguna'}
-          </p>
-          <p className="text-[11px] text-slate-400 capitalize">{role ?? '-'}</p>
+      <div className="border-t border-slate-100 p-4">
+        <div className="flex items-center justify-between mb-4 px-1">
+          <div className="flex-1 min-w-0 pr-2">
+            <p className="text-xs font-semibold text-slate-900 truncate">
+              {user?.profile?.full_name ?? user?.email ?? 'Pengguna'}
+            </p>
+            <p className="text-[11px] text-slate-400 capitalize">{role ?? '-'}</p>
+          </div>
+          <button
+            onClick={signOut}
+            className="flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+            id="sidebar-logout-btn"
+            title="Keluar"
+          >
+            <LogOut className="h-[18px] w-[18px]" />
+          </button>
         </div>
-        <button
-          onClick={signOut}
-          className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500 hover:bg-red-50 hover:text-red-600 transition-colors"
-          id="sidebar-logout-btn"
-        >
-          <LogOut className="h-4 w-4" />
-          Keluar
-        </button>
+        <div className="pt-2 border-t border-slate-50">
+          <p className="text-center text-[10px] text-slate-400 font-medium">
+            © {new Date().getFullYear()} SIMPATI MAPSI<br/>Design by Syaiful Dev
+          </p>
+        </div>
       </div>
     </div>
   )
