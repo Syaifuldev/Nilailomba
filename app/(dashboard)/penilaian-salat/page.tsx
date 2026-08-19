@@ -91,9 +91,7 @@ export default function PenilaianSalatPage() {
       if (isAdmin) {
         const judgesResp = await getJudges()
         const judges = judgesResp.data ?? []
-        const salatJudges = judges.filter(
-          (j) => j.judging_category === 'salat' || j.judging_category === 'wudu_dan_salat'
-        )
+        const salatJudges = judges
         setAllJudges(salatJudges)
         if (salatJudges.length > 0) setSelectedJudgeId(salatJudges[0].id)
       } else {
@@ -105,11 +103,7 @@ export default function PenilaianSalatPage() {
           setPageLoading(false)
           return
         }
-        if (judge.judging_category === 'wudu') {
-          setAccessError('Anda adalah Juri Wudu. Anda tidak memiliki akses ke penilaian Salat.')
-          setPageLoading(false)
-          return
-        }
+        // Restriction removed: Juri can score all competitions
         setCurrentJudge(judge)
       }
 
