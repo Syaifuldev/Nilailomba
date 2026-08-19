@@ -67,8 +67,13 @@ export default function LoginPage() {
 
       {/* Left side - Logo & Branding */}
       <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-12 xl:p-20 relative">
-        <div className="text-center flex flex-col items-center w-full max-w-4xl 2xl:max-w-5xl" style={{ mixBlendMode: 'multiply' }}>
-          <Logo className="w-full h-auto shadow-none border-none bg-transparent mix-blend-multiply" />
+        <div className="text-center flex flex-col items-center w-full max-w-[500px] xl:max-w-[700px]">
+          <img 
+            src="/logo-simpati.png" 
+            alt="SIMPATI MAPSI Logo" 
+            className="w-full h-auto object-contain mix-blend-multiply"
+            style={{ mixBlendMode: 'multiply' }}
+          />
         </div>
       </div>
 
