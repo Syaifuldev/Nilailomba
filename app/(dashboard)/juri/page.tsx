@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
-import { Plus, Search, RefreshCw, ToggleLeft, ToggleRight } from 'lucide-react'
+import { Plus, Search, RefreshCw, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react'
 import { useJudges } from '@/hooks/useJudges'
 import { useAuth } from '@/hooks/useAuth'
 import Button from '@/components/ui/Button'
@@ -11,14 +11,10 @@ import Table from '@/components/ui/Table'
 import Modal, { ConfirmModal } from '@/components/ui/Modal'
 import { StatusBadge } from '@/components/ui/Badge'
 import type { Judge, JudgingCategory, Profile } from '@/types'
-import { judgingCategoryLabel, formatDateTime } from '@/lib/utils'
+import { formatDateTime } from '@/lib/utils'
 import { getJuriProfiles } from '@/services/judges'
-
-const categoryOptions = [
-  { value: 'wudu', label: 'Wudu' },
-  { value: 'salat', label: 'Salat' },
-  { value: 'wudu_dan_salat', label: 'Wudu & Salat' },
-]
+import { resetAllScores } from '@/services/scoring-calc'
+import toast from 'react-hot-toast'
 
 interface JudgeForm {
   judge_name: string
@@ -42,10 +38,23 @@ export default function JuriPage() {
   const [modalAdd, setModalAdd] = useState(false)
   const [modalEdit, setModalEdit] = useState<Judge | null>(null)
   const [modalDelete, setModalDelete] = useState<Judge | null>(null)
+  const [modalReset, setModalReset] = useState(false)
   const [form, setForm] = useState<JudgeForm>(defaultForm)
   const [formErrors, setFormErrors] = useState<Partial<JudgeForm>>({})
   const [actionLoading, setActionLoading] = useState(false)
   const [profiles, setProfiles] = useState<Profile[]>([])
+
+  const handleResetData = async () => {
+    setActionLoading(true)
+    const { error } = await resetAllScores()
+    setActionLoading(false)
+    if (error) {
+      toast.error('Gagal mereset nilai: ' + error)
+    } else {
+      toast.success('Semua nilai berhasil direset')
+      setModalReset(false)
+    }
+  }
 
   useEffect(() => {
     fetchJudges()
@@ -58,9 +67,7 @@ export default function JuriPage() {
     if (!search) return judges
     const q = search.toLowerCase()
     return judges.filter(
-      (j) =>
-        j.judge_name.toLowerCase().includes(q) ||
-        judgingCategoryLabel[j.judging_category].toLowerCase().includes(q)
+      (j) => j.judge_name.toLowerCase().includes(q)
     )
   }, [judges, search])
 
@@ -78,7 +85,7 @@ export default function JuriPage() {
     setActionLoading(true)
     const ok = await addJudge({
       judge_name: form.judge_name.trim(),
-      judging_category: form.judging_category,
+      judging_category: 'wudu_dan_salat',
       status: form.status,
       user_id: form.user_id,
     })
@@ -94,7 +101,7 @@ export default function JuriPage() {
     setActionLoading(true)
     const ok = await editJudge(modalEdit.id, {
       judge_name: form.judge_name.trim(),
-      judging_category: form.judging_category,
+      judging_category: 'wudu_dan_salat',
       status: form.status,
       user_id: form.user_id,
     })
@@ -114,31 +121,12 @@ export default function JuriPage() {
     await toggleStatus(judge.id, !judge.status)
   }
 
-  const categoryBadgeColor: Record<JudgingCategory, string> = {
-    wudu: 'bg-sky-50 text-sky-700',
-    salat: 'bg-purple-50 text-purple-700',
-    wudu_dan_salat: 'bg-teal-50 text-teal-700',
-  }
-
   const columns = [
     {
       key: 'judge_name',
       label: 'Nama Juri',
       render: (row: Judge) => (
         <span className="font-medium text-slate-900">{row.judge_name}</span>
-      ),
-    },
-    {
-      key: 'judging_category',
-      label: 'Bidang Penilaian',
-      render: (row: Judge) => (
-        <span
-          className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
-            categoryBadgeColor[row.judging_category]
-          }`}
-        >
-          {judgingCategoryLabel[row.judging_category]}
-        </span>
       ),
     },
     {
@@ -245,16 +233,7 @@ export default function JuriPage() {
         required
         autoFocus
       />
-      <Select
-        id="judge-category-select"
-        label="Bidang Penilaian"
-        value={form.judging_category}
-        onChange={(e) =>
-          setForm({ ...form, judging_category: e.target.value as JudgingCategory })
-        }
-        options={categoryOptions}
-        required
-      />
+      {/* Category selector removed */}
       <div className="flex items-center justify-between rounded-xl border border-slate-200 px-4 py-3">
         <div>
           <p className="text-sm font-medium text-slate-700">Status Aktif</p>
@@ -289,6 +268,16 @@ export default function JuriPage() {
         </div>
         {isAdmin && (
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-red-600 hover:bg-red-50 hover:text-red-700 border-red-200"
+              icon={<Trash2 className="h-3.5 w-3.5" />}
+              onClick={() => setModalReset(true)}
+              id="reset-scores-btn"
+            >
+              Reset Nilai
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -376,6 +365,17 @@ export default function JuriPage() {
         title="Hapus Juri"
         description={`Apakah Anda yakin ingin menghapus ${modalDelete?.judge_name}? Data juri akan dihapus permanen.`}
         confirmLabel="Hapus"
+        loading={actionLoading}
+      />
+
+      {/* Reset Scores Confirm */}
+      <ConfirmModal
+        open={modalReset}
+        onClose={() => setModalReset(false)}
+        onConfirm={handleResetData}
+        title="Reset Semua Nilai"
+        description="Apakah Anda yakin ingin menghapus SEMUA nilai peserta? Semua data nilai wudu dan salat akan hilang secara permanen. Tindakan ini tidak dapat dibatalkan."
+        confirmLabel="Ya, Reset Semua Nilai"
         loading={actionLoading}
       />
     </div>

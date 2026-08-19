@@ -189,3 +189,20 @@ export async function getScoringStats(): Promise<ScoringStats> {
     top10: ranked.slice(0, 10),
   }
 }
+
+// ────────────────────────────────────────────────────────────
+// Reset all scores
+// ────────────────────────────────────────────────────────────
+export async function resetAllScores(): Promise<ApiResponse<null>> {
+  const supabase = createClient()
+  
+  const [res1, res2] = await Promise.all([
+    supabase.from('wudu_scores').delete().not('id', 'is', null),
+    supabase.from('prayer_scores').delete().not('id', 'is', null)
+  ])
+
+  if (res1.error) return { data: null, error: res1.error.message }
+  if (res2.error) return { data: null, error: res2.error.message }
+
+  return { data: null, error: null }
+}
