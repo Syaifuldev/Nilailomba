@@ -144,17 +144,10 @@ export default function LoginPage() {
           </form>
         </div>
 
-        {/* Info */}
-        <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50 p-4">
-          <p className="text-xs font-medium text-blue-700 mb-2">Akun Demo:</p>
-          <div className="space-y-1 text-xs text-blue-600">
-            <p><span className="font-medium">Admin:</span> admin@lombaku.id / Admin1234!</p>
-            <p><span className="font-medium">Juri:</span> juri.wudu@lombaku.id / Juri1234!</p>
-          </div>
-        </div>
+
 
         <p className="mt-6 text-center text-xs text-slate-400">
-          © {new Date().getFullYear()} Sistem Penilaian Lomba
+          © {new Date().getFullYear()} Sistem Penilaian Lomba - Design by Syaiful Dev
         </p>
       </div>
     </div>

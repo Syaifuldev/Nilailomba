@@ -71,12 +71,7 @@ const navItems: NavItem[] = [
     icon: FileText,
     roles: ['admin', 'operator'],
   },
-  {
-    href: '/riwayat',
-    label: 'Riwayat Aktivitas',
-    icon: History,
-    roles: ['admin'],
-  },
+
   {
     href: '/pengaturan',
     label: 'Pengaturan',
