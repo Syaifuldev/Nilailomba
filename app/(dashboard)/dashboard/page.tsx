@@ -51,6 +51,10 @@ export default function DashboardPage() {
   const salatPct = total > 0 ? Math.round((scoringStats.salat_done / total) * 100) : 0
   const selesaiPct = total > 0 ? Math.round((scoringStats.selesai / total) * 100) : 0
 
+  const maxWudu = scoringStats.top10.length > 0 ? Math.max(...scoringStats.top10.map(r => r.wudu_judge_count || 1)) * 100 : 100;
+  const maxSalat = scoringStats.top10.length > 0 ? Math.max(...scoringStats.top10.map(r => r.salat_judge_count || 1)) * 250 : 250;
+  const maxScore = maxWudu + maxSalat;
+
   return (
     <div className="space-y-6">
       {/* Welcome + Connection */}
@@ -175,15 +179,15 @@ export default function DashboardPage() {
             <div className="space-y-3">
               <div className="flex items-center justify-between rounded-xl bg-emerald-50 px-4 py-3">
                 <span className="text-xs font-medium text-slate-600">Nilai Tertinggi</span>
-                <span className="font-bold text-emerald-700">{scoringStats.highest} / 350</span>
+                <span className="font-bold text-emerald-700">{scoringStats.highest} / {maxScore}</span>
               </div>
               <div className="flex items-center justify-between rounded-xl bg-red-50 px-4 py-3">
                 <span className="text-xs font-medium text-slate-600">Nilai Terendah</span>
-                <span className="font-bold text-red-600">{scoringStats.lowest} / 350</span>
+                <span className="font-bold text-red-600">{scoringStats.lowest} / {maxScore}</span>
               </div>
               <div className="flex items-center justify-between rounded-xl bg-blue-50 px-4 py-3">
                 <span className="text-xs font-medium text-slate-600">Rata-rata</span>
-                <span className="font-bold text-blue-700">{scoringStats.average} / 350</span>
+                <span className="font-bold text-blue-700">{scoringStats.average} / {maxScore}</span>
               </div>
             </div>
           )}
@@ -193,7 +197,7 @@ export default function DashboardPage() {
         <Card>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
-              <Trophy className="h-4 w-4 text-amber-500" /> Ranking Sementara Top 10
+              <Trophy className="h-4 w-4 text-amber-500" /> Ranking Sementara Top 5
             </h3>
             <Link href="/ranking" className="text-xs text-blue-600 hover:underline" id="see-all-ranking">
               Lihat semua →
@@ -207,7 +211,7 @@ export default function DashboardPage() {
             <p className="text-xs text-slate-400">Belum ada ranking. Juri belum memfinalisasi penilaian.</p>
           ) : (
             <div className="space-y-1.5">
-              {scoringStats.top10.map((r) => (
+              {scoringStats.top10.slice(0, 5).map((r) => (
                 <div key={r.participant_id} className={`flex items-center justify-between rounded-xl px-3 py-2 ${r.ranking <= 3 ? 'bg-amber-50' : 'bg-slate-50'}`}>
                   <div className="flex items-center gap-2">
                     <span className="text-sm">
