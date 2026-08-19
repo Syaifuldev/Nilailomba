@@ -67,19 +67,8 @@ export default function LoginPage() {
 
       {/* Left side - Logo & Branding */}
       <div className="flex-1 flex flex-col items-center justify-center p-8 relative z-10">
-        <div className="text-center flex flex-col items-center max-w-sm">
-          <Logo className="!w-48 !h-48 mb-6 shadow-none border-none bg-transparent" />
-          <h1 className="text-5xl font-extrabold text-[var(--color-primary)] tracking-tight mb-2">
-            SIMPATI
-          </h1>
-          <p className="text-base text-[var(--color-secondary)] font-bold tracking-[0.3em] mb-6">
-            MAPSI
-          </p>
-          <p className="text-sm text-slate-800 font-semibold leading-relaxed max-w-[200px]">
-            Sistem Informasi<br />
-            Manajemen Penilaian<br />
-            Terintegrasi
-          </p>
+        <div className="text-center flex flex-col items-center max-w-md w-full">
+          <Logo className="w-full max-w-[400px] h-auto shadow-none border-none bg-transparent" />
         </div>
       </div>
 
