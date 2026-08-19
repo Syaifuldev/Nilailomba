@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import PrintButton from '@/components/ui/PrintButton'
 
 export default async function PrintRekapPage() {
   const supabase = await createClient()
@@ -17,12 +18,7 @@ export default async function PrintRekapPage() {
     <div style={{ padding: '0', background: 'white' }}>
       {/* Print button */}
       <div className="no-print" style={{ padding: '16px', textAlign: 'right' }}>
-        <button
-          onClick={() => window.print()}
-          style={{ padding: '8px 20px', background: '#2563eb', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px' }}
-        >
-          🖨 Cetak / PDF
-        </button>
+        <PrintButton />
       </div>
 
       {/* Header */}
