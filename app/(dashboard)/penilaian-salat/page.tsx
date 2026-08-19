@@ -16,6 +16,51 @@ import { PageLoading } from '@/components/ui/Loading'
 import Select from '@/components/ui/Select'
 import type { Participant, Judge } from '@/types'
 
+function ErrorInput({
+  value,
+  disabled,
+  onChange,
+  id,
+  className
+}: {
+  value: number
+  disabled: boolean
+  onChange: (v: number) => void
+  id: string
+  className: string
+}) {
+  const [val, setVal] = useState(value.toString())
+  useEffect(() => setVal(value.toString()), [value])
+
+  return (
+    <input
+      type="number"
+      min={0}
+      value={val}
+      disabled={disabled}
+      onChange={(e) => setVal(e.target.value)}
+      onBlur={(e) => {
+        const n = parseInt(e.target.value)
+        if (isNaN(n)) {
+          setVal(value.toString())
+        } else {
+          const clamped = Math.max(0, n)
+          setVal(clamped.toString())
+          if (clamped !== value) onChange(clamped)
+        }
+      }}
+      className={className}
+      id={id}
+    />
+  )
+}
+
+const formatNumbers = (nums: number[]) => {
+  if (!nums || nums.length === 0) return ''
+  if (nums.length === 1) return nums[0].toString()
+  return `${nums[0]} - ${nums[nums.length - 1]}`
+}
+
 export default function PenilaianSalatPage() {
   const { user, isAdmin } = useAuth()
 
@@ -200,7 +245,7 @@ export default function PenilaianSalatPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50">
-                  <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider w-8">No</th>
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider w-12 whitespace-nowrap">No</th>
                   <th className="px-3 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Aspek yang Dinilai</th>
                   <th className="px-3 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider w-16">Maks</th>
                   <th className="px-3 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider w-24">Jml Kesalahan</th>
@@ -218,8 +263,8 @@ export default function PenilaianSalatPage() {
                       }`}
                     >
                       {/* Numbers */}
-                      <td className="px-3 py-3 text-xs text-slate-400 font-medium text-center align-top pt-4">
-                        {row.criteria_numbers.join(', ')}
+                      <td className="px-3 py-3 text-xs text-slate-400 font-medium text-center align-top pt-4 whitespace-nowrap">
+                        {formatNumbers(row.criteria_numbers)}
                       </td>
                       {/* Criteria names */}
                       <td className="px-3 py-3 align-top">
@@ -242,14 +287,10 @@ export default function PenilaianSalatPage() {
                       {/* Error count */}
                       <td className="px-3 py-3 align-top pt-4">
                         <div className="flex justify-center">
-                          <input
-                            type="number"
-                            min={0}
+                          <ErrorInput
                             value={row.error_count}
                             disabled={isReadOnly}
-                            onChange={(e) =>
-                              scoring.updateScore(row.id, Math.max(0, parseInt(e.target.value) || 0), row.score, row.notes)
-                            }
+                            onChange={(v) => scoring.updateScore(row.id, v, row.score, row.notes)}
                             className="w-16 h-9 text-center font-semibold rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-400 disabled:bg-slate-50 disabled:text-slate-400 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
                             id={`salat-error-${row.id}`}
                           />
@@ -323,14 +364,10 @@ export default function PenilaianSalatPage() {
                 {/* Error count */}
                 <div className="flex items-center gap-3">
                   <label className="text-xs font-medium text-slate-600 w-28">Jml Kesalahan:</label>
-                  <input
-                    type="number"
-                    min={0}
+                  <ErrorInput
                     value={row.error_count}
                     disabled={isReadOnly}
-                    onChange={(e) =>
-                      scoring.updateScore(row.id, Math.max(0, parseInt(e.target.value) || 0), row.score, row.notes)
-                    }
+                    onChange={(v) => scoring.updateScore(row.id, v, row.score, row.notes)}
                     className="w-20 h-9 text-center font-semibold rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-400 disabled:bg-slate-50 disabled:text-slate-400 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
                     id={`salat-error-mobile-${row.id}`}
                   />
