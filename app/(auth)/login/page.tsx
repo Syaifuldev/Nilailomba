@@ -3,10 +3,11 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Eye, EyeOff, Medal, Lock, Mail } from 'lucide-react'
+import { Eye, EyeOff, Lock, Mail } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
+import Logo from '@/components/ui/Logo'
 import toast from 'react-hot-toast'
 
 export default function LoginPage() {
@@ -60,21 +61,21 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex items-center justify-center p-4">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-blue-100/50 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-indigo-100/50 blur-3xl" />
+        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-[var(--color-accent)]/20 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-[var(--color-secondary)]/10 blur-3xl" />
       </div>
 
       <div className="relative w-full max-w-sm">
         {/* Logo */}
-        <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg shadow-blue-200">
-            <Medal className="h-8 w-8 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-slate-900">Sistem Penilaian</h1>
-          <p className="mt-1 text-sm text-slate-500">Lomba Wudu & Salat</p>
+        <div className="mb-8 text-center flex flex-col items-center">
+          <Logo size="lg" className="mb-4" />
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">SIMPATI MAPSI</h1>
+          <p className="mt-1.5 text-sm text-slate-500 max-w-[280px] mx-auto leading-relaxed">
+            Sistem Informasi Manajemen Penilaian Terintegrasi
+          </p>
         </div>
 
         {/* Card */}
@@ -136,7 +137,7 @@ export default function LoginPage() {
               type="submit"
               size="lg"
               loading={loading}
-              className="w-full"
+              className="w-full bg-[var(--color-primary)] hover:bg-[#09357a] text-white"
               id="login-submit-btn"
             >
               Masuk
@@ -147,7 +148,7 @@ export default function LoginPage() {
 
 
         <p className="mt-6 text-center text-xs text-slate-400">
-          © {new Date().getFullYear()} Sistem Penilaian Lomba - Design by Syaiful Dev
+          © {new Date().getFullYear()} SIMPATI MAPSI - Design by Syaiful Dev
         </p>
       </div>
     </div>

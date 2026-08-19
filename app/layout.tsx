@@ -1,17 +1,21 @@
 import type { Metadata } from 'next'
-import { Geist } from 'next/font/google'
+import { Poppins } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
 import './globals.css'
 
-const geist = Geist({ subsets: ['latin'] })
+const poppins = Poppins({ 
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: {
-    default: 'Sistem Penilaian Lomba',
-    template: '%s | Sistem Penilaian Lomba',
+    default: 'SIMPATI MAPSI - Sistem Penilaian Terintegrasi',
+    template: '%s | SIMPATI MAPSI',
   },
   description:
-    'Aplikasi penilaian lomba Praktik Wudu dan Praktik Gerakan & Bacaan Salat',
+    'Sistem Informasi Manajemen Penilaian Terintegrasi MAPSI untuk lomba Praktik Wudu dan Salat',
   keywords: ['lomba', 'penilaian', 'wudu', 'salat', 'nilai'],
 }
 
@@ -22,7 +26,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id" suppressHydrationWarning>
-      <body className={`${geist.className} antialiased bg-slate-50 text-slate-900`}>
+      <body className={`${poppins.className} antialiased bg-slate-50 text-slate-900`}>
         {children}
         <Toaster
           position="top-right"

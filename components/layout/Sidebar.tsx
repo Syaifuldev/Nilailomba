@@ -17,8 +17,8 @@ import {
   LogOut,
   ChevronRight,
   X,
-  Medal,
 } from 'lucide-react'
+import Logo from '@/components/ui/Logo'
 
 interface NavItem {
   href: string
@@ -98,12 +98,10 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
     <div className="flex h-full flex-col">
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 py-5 border-b border-slate-100">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-sm">
-          <Medal className="h-5 w-5 text-white" />
-        </div>
-        <div>
-          <p className="text-sm font-bold text-slate-900 leading-tight">Sistem Penilaian</p>
-          <p className="text-xs text-slate-400">Lomba Wudu & Salat</p>
+        <Logo size="md" />
+        <div className="min-w-0">
+          <p className="text-sm font-bold text-slate-900 leading-tight tracking-tight">SIMPATI MAPSI</p>
+          <p className="text-[10px] font-medium text-slate-400 truncate">Sistem Penilaian Terintegrasi</p>
         </div>
         {/* Mobile close button */}
         {onMobileClose && (
@@ -133,7 +131,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
               className={cn(
                 'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150',
                 isActive
-                  ? 'bg-blue-600 text-white shadow-sm'
+                  ? 'bg-[var(--color-primary)] text-white shadow-sm shadow-[var(--color-primary)]/20'
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               )}
             >
@@ -148,7 +146,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
                 <span
                   className={cn(
                     'ml-auto rounded-full px-1.5 py-0.5 text-[10px] font-semibold',
-                    isActive ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-700'
+                    isActive ? 'bg-white/20 text-white' : 'bg-[var(--color-secondary)]/10 text-[var(--color-secondary)]'
                   )}
                 >
                   {item.badge}

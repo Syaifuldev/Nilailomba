@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+@theme {
+  --color-primary: #0D47A1;
+  --color-secondary: #22C55E;
+  --color-accent: #38BDF8;
+  --color-warning: #F59E0B;
+  --color-dark: #1F2937;
+}
+
 /* ─── Custom scrollbar ─────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 6px;

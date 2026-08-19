@@ -27,7 +27,7 @@ export default function Header({ onMobileMenuOpen }: HeaderProps) {
   // Find the matching title (handle nested routes)
   const title =
     Object.entries(pageTitles).find(([key]) => pathname.startsWith(key))?.[1] ??
-    'Sistem Penilaian Lomba'
+    'SIMPATI MAPSI'
 
   return (
     <header className="sticky top-0 z-10 flex h-14 sm:h-16 items-center gap-3 border-b border-slate-200 bg-white/95 backdrop-blur-sm px-4 sm:px-6">
@@ -59,7 +59,7 @@ export default function Header({ onMobileMenuOpen }: HeaderProps) {
         </button>
 
         {/* Avatar */}
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white text-sm font-semibold shrink-0">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-primary)] text-white text-sm font-semibold shrink-0 shadow-sm shadow-[var(--color-primary)]/20">
           {(user?.profile?.full_name ?? user?.email ?? 'U')
             .charAt(0)
             .toUpperCase()}
