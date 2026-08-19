@@ -66,8 +66,8 @@ export default function LoginPage() {
       <div className="absolute -bottom-40 -left-40 h-[600px] w-[600px] rounded-full bg-[var(--color-secondary)]/10 blur-[100px] pointer-events-none" />
 
       {/* Left side - Logo & Branding */}
-      <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-12 xl:p-20 relative">
-        <div className="text-center flex flex-col items-center w-full max-w-[500px] xl:max-w-[700px]">
+      <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-12 relative w-full h-full">
+        <div className="text-center flex flex-col items-center w-full h-full max-w-5xl justify-center">
           <img 
             src="/logo-simpati.png" 
             alt="SIMPATI MAPSI Logo" 
