@@ -66,9 +66,9 @@ export default function LoginPage() {
       <div className="absolute -bottom-40 -left-40 h-[600px] w-[600px] rounded-full bg-[var(--color-secondary)]/10 blur-[100px] pointer-events-none" />
 
       {/* Left side - Logo & Branding */}
-      <div className="flex-1 flex flex-col items-center justify-center p-8 relative z-10">
-        <div className="text-center flex flex-col items-center max-w-md w-full">
-          <Logo className="w-full max-w-[400px] h-auto shadow-none border-none bg-transparent" />
+      <div className="flex-1 flex flex-col items-center justify-center p-8 lg:p-12 relative z-10">
+        <div className="text-center flex flex-col items-center w-full max-w-lg xl:max-w-xl">
+          <Logo className="w-full h-auto shadow-none border-none bg-transparent" />
         </div>
       </div>
 

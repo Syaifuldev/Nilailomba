@@ -29,7 +29,7 @@ export default function Logo({ className, size = 'md' }: LogoProps) {
       <img
         src="/logo-simpati.png"
         alt="SIMPATI MAPSI Logo"
-        className="w-full h-full object-contain"
+        className="w-full h-full object-contain mix-blend-multiply"
       />
     </div>
   )
