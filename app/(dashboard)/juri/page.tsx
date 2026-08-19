@@ -226,11 +226,11 @@ export default function JuriPage() {
         options={[
           { value: '', label: '-- Tidak ditautkan ke akun login --' },
           ...profiles.map(p => {
-            const displayName = p.full_name || p.username || p.email || `Tanpa Nama (ID: ${p.id.slice(0, 6)})`
-            const emailHint = p.email ? ` - ${p.email}` : ''
+            const name = p.full_name || p.username
+            const hasName = name && name !== p.email
             return {
               value: p.id,
-              label: p.full_name || p.username ? `${displayName}${emailHint}` : displayName
+              label: hasName ? `${name} (${p.email})` : (p.email || `Tanpa Nama (ID: ${p.id.slice(0, 6)})`)
             }
           })
         ]}
