@@ -3,7 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 export default async function PrintRankingPage() {
   const supabase = await createClient()
   const { data: settings } = await supabase.from('competition_settings').select('*').single()
-  const { data: ranked } = await supabase.from('participant_ranking_view').select('*').order('ranking', { ascending: true })
+  const { data: rankedData } = await supabase.from('participant_ranking_view').select('*').order('ranking', { ascending: true })
+  const ranked = rankedData || []
   const now = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })
 
   return (
