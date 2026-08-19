@@ -61,37 +61,42 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row relative overflow-hidden">
       {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-[var(--color-accent)]/20 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-[var(--color-secondary)]/10 blur-3xl" />
-      </div>
+      <div className="absolute -bottom-40 -left-40 h-[600px] w-[600px] rounded-full bg-[var(--color-secondary)]/10 blur-[100px] pointer-events-none" />
 
-      <div className="relative w-full max-w-sm">
-        {/* Logo */}
-        <div className="mb-8 text-center flex flex-col items-center">
-          <Logo size="lg" className="mb-4" />
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">SIMPATI MAPSI</h1>
-          <p className="mt-1.5 text-sm text-slate-500 max-w-[280px] mx-auto leading-relaxed">
-            Sistem Informasi Manajemen Penilaian Terintegrasi
+      {/* Left side - Logo & Branding */}
+      <div className="flex-1 flex flex-col items-center justify-center p-8 relative z-10">
+        <div className="text-center flex flex-col items-center max-w-sm">
+          <Logo className="!w-48 !h-48 mb-6 shadow-none border-none bg-transparent" />
+          <h1 className="text-5xl font-extrabold text-[var(--color-primary)] tracking-tight mb-2">
+            SIMPATI
+          </h1>
+          <p className="text-base text-[var(--color-secondary)] font-bold tracking-[0.3em] mb-6">
+            MAPSI
+          </p>
+          <p className="text-sm text-slate-800 font-semibold leading-relaxed max-w-[200px]">
+            Sistem Informasi<br />
+            Manajemen Penilaian<br />
+            Terintegrasi
           </p>
         </div>
+      </div>
 
-        {/* Card */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-5 text-lg font-semibold text-slate-900">Masuk</h2>
+      {/* Right side - Login Form */}
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-12 z-10">
+        <div className="w-full max-w-md bg-white rounded-3xl p-8 sm:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">Selamat Datang</h2>
+          <p className="text-sm text-slate-500 mb-8">Silakan masuk untuk melanjutkan</p>
 
-          <form onSubmit={handleLogin} className="space-y-4" noValidate>
+          <form onSubmit={handleLogin} className="space-y-5" noValidate>
             <Input
               id="login-email"
               type="email"
-              label="Email"
-              placeholder="admin@lombaku.id"
+              placeholder="Username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               error={errors.email}
-              leftIcon={<Mail className="h-4 w-4" />}
               autoComplete="email"
               required
             />
@@ -99,8 +104,7 @@ export default function LoginPage() {
             <Input
               id="login-password"
               type={showPassword ? 'text' : 'password'}
-              label="Password"
-              placeholder="Masukkan password"
+              placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               error={errors.password}
@@ -124,32 +128,28 @@ export default function LoginPage() {
               required
             />
 
-            <div className="flex justify-end">
-              <Link
-                href="/forgot-password"
-                className="text-xs text-blue-600 hover:text-blue-700 hover:underline"
+            <div className="pt-2">
+              <Button
+                type="submit"
+                size="lg"
+                loading={loading}
+                className="w-full bg-[var(--color-primary)] hover:bg-[#09357a] text-white rounded-xl py-6 font-semibold"
+                id="login-submit-btn"
               >
-                Lupa password?
-              </Link>
+                Masuk
+              </Button>
             </div>
 
-            <Button
-              type="submit"
-              size="lg"
-              loading={loading}
-              className="w-full bg-[var(--color-primary)] hover:bg-[#09357a] text-white"
-              id="login-submit-btn"
-            >
-              Masuk
-            </Button>
+            <div className="flex justify-center pt-4">
+              <Link
+                href="/forgot-password"
+                className="text-sm font-medium text-[var(--color-primary)] hover:text-[#09357a] hover:underline"
+              >
+                Lupa Password?
+              </Link>
+            </div>
           </form>
         </div>
-
-
-
-        <p className="mt-6 text-center text-xs text-slate-400">
-          © {new Date().getFullYear()} SIMPATI MAPSI - Design by Syaiful Dev
-        </p>
       </div>
     </div>
   )
