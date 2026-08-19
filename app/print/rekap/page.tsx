@@ -1,9 +1,16 @@
 import { createClient } from '@/lib/supabase/server'
 
-export default async function PrintRankingPage() {
+export default async function PrintRekapPage() {
   const supabase = await createClient()
   const { data: settings } = await supabase.from('competition_settings').select('*').single()
-  const { data: ranked } = await supabase.from('participant_ranking_view').select('*').order('ranking', { ascending: true })
+  
+  const { data: allScores } = await supabase
+    .from('participant_scores_view')
+    .select('*')
+    .order('participant_number', { ascending: true })
+
+  const filtered = (allScores || []).filter(s => s.score_status !== 'belum')
+
   const now = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })
 
   return (
@@ -24,7 +31,7 @@ export default async function PrintRankingPage() {
           {settings?.competition_name ?? 'SISTEM PENILAIAN LOMBA MAPSI'}
         </h1>
         <h2 style={{ fontSize: '14px', fontWeight: 'bold', margin: '4px 0' }}>
-          DAFTAR RANKING PESERTA
+          REKAPITULASI NILAI PESERTA
         </h2>
         <p style={{ fontSize: '11px', color: '#555', margin: '2px 0' }}>
           {settings?.organizer_name} — Tahun {settings?.competition_year ?? new Date().getFullYear()}
@@ -39,19 +46,20 @@ export default async function PrintRankingPage() {
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
         <thead>
           <tr style={{ background: '#f1f5f9' }}>
-            <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'center' }}>Ranking</th>
+            <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'center', width: '40px' }}>No</th>
             <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'center' }}>Nomor Peserta</th>
-            <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'center' }}>Nilai Wudu<br />(Maks 100)</th>
-            <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'center' }}>Nilai Salat<br />(Maks 250)</th>
-            <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'center' }}>Total Nilai<br />(Maks 350)</th>
+            <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'center' }}>Wudu<br />(Maks 100)</th>
+            <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'center' }}>Salat<br />(Maks 250)</th>
+            <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'center' }}>Total<br />(Maks 350)</th>
             <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'center' }}>Persentase</th>
+            <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'center' }}>Status</th>
           </tr>
         </thead>
         <tbody>
-          {ranked.map((r) => (
-            <tr key={r.participant_id} style={{ background: r.ranking <= 3 ? '#fefce8' : 'white' }}>
-              <td style={{ border: '1px solid #cbd5e1', padding: '5px 8px', textAlign: 'center', fontWeight: 'bold' }}>
-                {r.ranking === 1 ? '🥇' : r.ranking === 2 ? '🥈' : r.ranking === 3 ? '🥉' : r.ranking}
+          {filtered.map((r, i) => (
+            <tr key={r.participant_id} style={{ background: 'white' }}>
+              <td style={{ border: '1px solid #cbd5e1', padding: '5px 8px', textAlign: 'center', color: '#64748b' }}>
+                {i + 1}
               </td>
               <td style={{ border: '1px solid #cbd5e1', padding: '5px 8px', textAlign: 'center', fontFamily: 'monospace', fontWeight: 'bold', fontSize: '13px' }}>
                 {r.participant_number}
@@ -62,13 +70,16 @@ export default async function PrintRankingPage() {
               <td style={{ border: '1px solid #cbd5e1', padding: '5px 8px', textAlign: 'center', fontWeight: 'bold', color: r.percentage >= 90 ? '#16a34a' : '#2563eb' }}>
                 {r.percentage}%
               </td>
+              <td style={{ border: '1px solid #cbd5e1', padding: '5px 8px', textAlign: 'center', color: r.score_status === 'selesai' ? '#15803d' : '#b45309' }}>
+                {r.score_status === 'selesai' ? 'Final' : 'Sebagian'}
+              </td>
             </tr>
           ))}
         </tbody>
         <tfoot>
           <tr style={{ background: '#f8fafc' }}>
-            <td colSpan={6} style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'right', fontSize: '10px', color: '#64748b' }}>
-              Total peserta: {ranked.length} | Dicetak dari Sistem Penilaian Lomba MAPSI
+            <td colSpan={7} style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'right', fontSize: '10px', color: '#64748b' }}>
+              Total data: {filtered.length} | Dicetak dari Sistem Penilaian Lomba MAPSI
             </td>
           </tr>
         </tfoot>
