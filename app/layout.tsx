@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Poppins } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
 import './globals.css'
@@ -9,6 +9,10 @@ const poppins = Poppins({
   display: 'swap',
 })
 
+export const viewport: Viewport = {
+  themeColor: '#f8fafc',
+}
+
 export const metadata: Metadata = {
   title: {
     default: 'SIMPATI MAPSI - Sistem Penilaian Terintegrasi',
@@ -17,8 +21,18 @@ export const metadata: Metadata = {
   description:
     'Sistem Informasi Manajemen Penilaian Terintegrasi MAPSI untuk lomba Praktik Wudu dan Salat',
   keywords: ['lomba', 'penilaian', 'wudu', 'salat', 'nilai'],
+  applicationName: 'SIMPATI MAPSI',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'SIMPATI MAPSI',
+  },
+  formatDetection: {
+    telephone: false,
+  },
   icons: {
     icon: '/logo-sm.png',
+    apple: '/logo-sm.png',
   },
 }
 
