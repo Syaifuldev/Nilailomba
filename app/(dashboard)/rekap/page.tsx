@@ -114,11 +114,11 @@ export default function RekapPage() {
                     </td>
                     <td className="px-4 py-3 text-center">
                       <span className="font-semibold text-sky-700">{s.wudu_score}</span>
-                      <span className="text-xs text-slate-400">/100</span>
+                      <span className="text-xs text-slate-400">/{s.wudu_judge_count > 0 ? s.wudu_judge_count * 100 : 100}</span>
                     </td>
                     <td className="px-4 py-3 text-center">
                       <span className="font-semibold text-purple-700">{s.salat_score}</span>
-                      <span className="text-xs text-slate-400">/250</span>
+                      <span className="text-xs text-slate-400">/{s.salat_judge_count > 0 ? s.salat_judge_count * 250 : 250}</span>
                     </td>
                     <td className="px-4 py-3 text-center font-bold text-slate-900">{s.total_score}</td>
                     <td className="px-4 py-3 text-center">

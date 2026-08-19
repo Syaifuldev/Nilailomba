@@ -117,22 +117,26 @@ export async function getJudgeBreakdown(participantId: string) {
     total: v.total,
   }))
 
-  const wuduAvg =
+  const wuduTotalSum =
     wuduEntries.length > 0
-      ? wuduEntries.reduce((s, e) => s + e.total, 0) / wuduEntries.length
+      ? wuduEntries.reduce((s, e) => s + e.total, 0)
       : 0
-  const salatAvg =
+  const salatTotalSum =
     salatEntries.length > 0
-      ? salatEntries.reduce((s, e) => s + e.total, 0) / salatEntries.length
+      ? salatEntries.reduce((s, e) => s + e.total, 0)
       : 0
+      
+  const wuduJudgesCount = wuduEntries.length
+  const salatJudgesCount = salatEntries.length
+  const maxPossible = (wuduJudgesCount * 100) + (salatJudgesCount * 250)
 
   return {
     wuduJudges: wuduEntries,
     salatJudges: salatEntries,
-    wuduAverage: Math.round(wuduAvg * 100) / 100,
-    salatAverage: Math.round(salatAvg * 100) / 100,
-    total: Math.round((wuduAvg + salatAvg) * 100) / 100,
-    percentage: Math.round(((wuduAvg + salatAvg) / 350) * 10000) / 100,
+    wuduAverage: wuduTotalSum, // Kept the key name for compatibility, but it's now sum
+    salatAverage: salatTotalSum,
+    total: wuduTotalSum + salatTotalSum,
+    percentage: maxPossible > 0 ? Math.round(((wuduTotalSum + salatTotalSum) / maxPossible) * 10000) / 100 : 0,
   }
 }
 

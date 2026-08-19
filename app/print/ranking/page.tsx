@@ -6,6 +6,11 @@ export default async function PrintRankingPage() {
   const { data: settings } = await supabase.from('competition_settings').select('*').single()
   const { data: rankedData } = await supabase.from('participant_ranking_view').select('*').order('ranking', { ascending: true })
   const ranked = rankedData || []
+  
+  const maxWudu = ranked.length > 0 ? Math.max(...ranked.map(r => r.wudu_judge_count || 1)) * 100 : 100;
+  const maxSalat = ranked.length > 0 ? Math.max(...ranked.map(r => r.salat_judge_count || 1)) * 250 : 250;
+  const maxTotal = maxWudu + maxSalat;
+
   const now = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })
 
   return (
@@ -38,9 +43,9 @@ export default async function PrintRankingPage() {
           <tr style={{ background: '#f1f5f9' }}>
             <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'center' }}>Ranking</th>
             <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'center' }}>Nomor Peserta</th>
-            <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'center' }}>Nilai Wudu<br />(Maks 100)</th>
-            <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'center' }}>Nilai Salat<br />(Maks 250)</th>
-            <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'center' }}>Total Nilai<br />(Maks 350)</th>
+            <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'center' }}>Nilai Wudu<br />(Maks {maxWudu})</th>
+            <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'center' }}>Nilai Salat<br />(Maks {maxSalat})</th>
+            <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'center' }}>Total Nilai<br />(Maks {maxTotal})</th>
             <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'center' }}>Persentase</th>
           </tr>
         </thead>

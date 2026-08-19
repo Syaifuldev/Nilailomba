@@ -183,15 +183,15 @@ export default function RankingPage() {
                     </td>
                     <td className="px-4 py-3 text-center">
                       <span className="font-semibold text-sky-700">{r.wudu_score}</span>
-                      <span className="text-xs text-slate-400">/100</span>
+                      <span className="text-xs text-slate-400">/{r.wudu_judge_count > 0 ? r.wudu_judge_count * 100 : 100}</span>
                     </td>
                     <td className="px-4 py-3 text-center">
                       <span className="font-semibold text-purple-700">{r.salat_score}</span>
-                      <span className="text-xs text-slate-400">/250</span>
+                      <span className="text-xs text-slate-400">/{r.salat_judge_count > 0 ? r.salat_judge_count * 250 : 250}</span>
                     </td>
                     <td className="px-4 py-3 text-center">
                       <span className="font-bold text-slate-900 text-base">{r.total_score}</span>
-                      <span className="text-xs text-slate-400">/350</span>
+                      <span className="text-xs text-slate-400">/{(r.wudu_judge_count * 100) + (r.salat_judge_count * 250) || 350}</span>
                     </td>
                     <td className="px-4 py-3 text-center">
                       <span className={`font-bold ${r.percentage >= 90 ? 'text-emerald-600' : r.percentage >= 70 ? 'text-blue-600' : 'text-amber-600'}`}>
@@ -220,12 +220,12 @@ export default function RankingPage() {
                     <p className={`text-lg font-extrabold ${r.percentage >= 90 ? 'text-emerald-600' : r.percentage >= 70 ? 'text-blue-600' : 'text-amber-600'}`}>
                       {r.percentage}%
                     </p>
-                    <p className="text-xs text-slate-400">{r.total_score}/350</p>
+                    <p className="text-xs text-slate-400">{r.total_score}/{(r.wudu_judge_count * 100) + (r.salat_judge_count * 250) || 350}</p>
                   </div>
                 </div>
                 <div className="flex gap-4 text-xs text-slate-600">
-                  <span>Wudu: <strong className="text-sky-700">{r.wudu_score}</strong>/100</span>
-                  <span>Salat: <strong className="text-purple-700">{r.salat_score}</strong>/250</span>
+                  <span>Wudu: <strong className="text-sky-700">{r.wudu_score}</strong>/{r.wudu_judge_count > 0 ? r.wudu_judge_count * 100 : 100}</span>
+                  <span>Salat: <strong className="text-purple-700">{r.salat_score}</strong>/{r.salat_judge_count > 0 ? r.salat_judge_count * 250 : 250}</span>
                 </div>
               </div>
             ))}

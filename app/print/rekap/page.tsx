@@ -11,6 +11,10 @@ export default async function PrintRekapPage() {
     .order('participant_number', { ascending: true })
 
   const filtered = (allScores || []).filter(s => s.score_status !== 'belum')
+  
+  const maxWudu = filtered.length > 0 ? Math.max(...filtered.map(r => r.wudu_judge_count || 1)) * 100 : 100;
+  const maxSalat = filtered.length > 0 ? Math.max(...filtered.map(r => r.salat_judge_count || 1)) * 250 : 250;
+  const maxTotal = maxWudu + maxSalat;
 
   const now = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })
 
@@ -44,9 +48,9 @@ export default async function PrintRekapPage() {
           <tr style={{ background: '#f1f5f9' }}>
             <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'center', width: '40px' }}>No</th>
             <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'center' }}>Nomor Peserta</th>
-            <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'center' }}>Wudu<br />(Maks 100)</th>
-            <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'center' }}>Salat<br />(Maks 250)</th>
-            <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'center' }}>Total<br />(Maks 350)</th>
+            <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'center' }}>Wudu<br />(Maks {maxWudu})</th>
+            <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'center' }}>Salat<br />(Maks {maxSalat})</th>
+            <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'center' }}>Total<br />(Maks {maxTotal})</th>
             <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'center' }}>Persentase</th>
             <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', textAlign: 'center' }}>Status</th>
           </tr>
