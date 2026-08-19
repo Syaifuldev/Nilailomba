@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Eye, EyeOff, Lock, Mail } from 'lucide-react'
+import { Eye, EyeOff, Lock, Mail, User } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -66,8 +66,8 @@ export default function LoginPage() {
       <div className="absolute -bottom-40 -left-40 h-[600px] w-[600px] rounded-full bg-[var(--color-secondary)]/10 blur-[100px] pointer-events-none" />
 
       {/* Left side - Logo & Branding */}
-      <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 relative">
-        <div className="text-center flex flex-col items-center w-full max-w-2xl xl:max-w-[800px]" style={{ mixBlendMode: 'multiply' }}>
+      <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-12 xl:p-20 relative">
+        <div className="text-center flex flex-col items-center w-full max-w-4xl 2xl:max-w-5xl" style={{ mixBlendMode: 'multiply' }}>
           <Logo className="w-full h-auto shadow-none border-none bg-transparent mix-blend-multiply" />
         </div>
       </div>
@@ -86,6 +86,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               error={errors.email}
+              leftIcon={<User className="h-4 w-4" />}
               autoComplete="email"
               required
             />
@@ -117,6 +118,15 @@ export default function LoginPage() {
               required
             />
 
+            <div className="flex justify-end pt-1">
+              <Link
+                href="/forgot-password"
+                className="text-xs font-semibold text-[var(--color-primary)] hover:text-[#09357a] hover:underline"
+              >
+                Lupa Password?
+              </Link>
+            </div>
+
             <div className="pt-2">
               <Button
                 type="submit"
@@ -127,15 +137,6 @@ export default function LoginPage() {
               >
                 Masuk
               </Button>
-            </div>
-
-            <div className="flex justify-center pt-4">
-              <Link
-                href="/forgot-password"
-                className="text-sm font-medium text-[var(--color-primary)] hover:text-[#09357a] hover:underline"
-              >
-                Lupa Password?
-              </Link>
             </div>
           </form>
         </div>
