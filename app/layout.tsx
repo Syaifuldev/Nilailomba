@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Poppins } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
+import { PwaRegistry } from '@/components/PwaRegistry'
 import './globals.css'
 
 const poppins = Poppins({ 
@@ -44,6 +45,7 @@ export default function RootLayout({
   return (
     <html lang="id" suppressHydrationWarning>
       <body className={`${poppins.className} antialiased bg-slate-50 text-slate-900`}>
+        <PwaRegistry />
         {children}
         <Toaster
           position="top-right"
