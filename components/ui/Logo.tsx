@@ -30,6 +30,7 @@ export default function Logo({ className, size = 'md' }: LogoProps) {
         src="/logo-simpati.png"
         alt="SIMPATI MAPSI Logo"
         className="w-full h-full object-contain mix-blend-multiply"
+        style={{ mixBlendMode: 'multiply' }}
       />
     </div>
   )
