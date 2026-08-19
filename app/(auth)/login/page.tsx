@@ -66,8 +66,8 @@ export default function LoginPage() {
       <div className="absolute -bottom-40 -left-40 h-[600px] w-[600px] rounded-full bg-[var(--color-secondary)]/10 blur-[100px] pointer-events-none" />
 
       {/* Left side - Logo & Branding */}
-      <div className="flex-1 flex flex-col items-center justify-center p-8 lg:p-12 relative">
-        <div className="text-center flex flex-col items-center w-full max-w-lg xl:max-w-xl" style={{ mixBlendMode: 'multiply' }}>
+      <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 relative">
+        <div className="text-center flex flex-col items-center w-full max-w-2xl xl:max-w-[800px]" style={{ mixBlendMode: 'multiply' }}>
           <Logo className="w-full h-auto shadow-none border-none bg-transparent mix-blend-multiply" />
         </div>
       </div>
