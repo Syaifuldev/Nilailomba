@@ -17,6 +17,9 @@ export const metadata: Metadata = {
   description:
     'Sistem Informasi Manajemen Penilaian Terintegrasi MAPSI untuk lomba Praktik Wudu dan Salat',
   keywords: ['lomba', 'penilaian', 'wudu', 'salat', 'nilai'],
+  icons: {
+    icon: '/logo-sm.png',
+  },
 }
 
 export default function RootLayout({

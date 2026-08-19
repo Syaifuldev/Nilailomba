@@ -98,7 +98,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
     <div className="flex h-full flex-col">
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 py-5 border-b border-slate-100">
-        <Logo size="md" />
+        <Logo size="md" iconOnly />
         <div className="min-w-0">
           <p className="text-sm font-bold text-slate-900 leading-tight tracking-tight">SIMPATI MAPSI</p>
           <p className="text-[10px] font-medium text-slate-400 truncate">Sistem Penilaian Terintegrasi</p>
