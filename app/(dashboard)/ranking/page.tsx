@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Trophy, Medal, ArrowUpDown, Search, RefreshCw, Lock, LockOpen } from 'lucide-react'
+import { Trophy, Search, RefreshCw, Lock, LockOpen } from 'lucide-react'
 import { useRanking } from '@/hooks/useRanking'
 import { useAuth } from '@/hooks/useAuth'
 import { finalizeCompetitionResults, reopenCompetitionResults, isResultsPublished } from '@/services/results'
@@ -13,11 +13,15 @@ import { PageLoading } from '@/components/ui/Loading'
 import toast from 'react-hot-toast'
 import { useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import type { RankedParticipant } from '@/services/scoring-calc'
+
+type GenderTab = 'laki-laki' | 'perempuan'
 
 export default function RankingPage() {
   const { user, isAdmin } = useAuth()
   const { ranked, loading, refresh } = useRanking()
   const [search, setSearch] = useState('')
+  const [genderTab, setGenderTab] = useState<GenderTab>('laki-laki')
   const [showFinalizeModal, setShowFinalizeModal] = useState(false)
   const [showReopenModal, setShowReopenModal] = useState(false)
   const [actionLoading, setActionLoading] = useState(false)
@@ -37,10 +41,27 @@ export default function RankingPage() {
     return () => { supabase.removeChannel(channel) }
   }, []) // eslint-disable-line
 
+  // Split by gender and re-rank within each group
+  const rankedByGender = useMemo(() => {
+    const byGender = (gender: GenderTab): RankedParticipant[] => {
+      const list = ranked
+        .filter((r) => r.gender === gender)
+        .sort((a, b) => b.total_score - a.total_score)
+      // Re-assign rank within gender group
+      return list.map((r, idx) => ({ ...r, ranking: idx + 1 }))
+    }
+    return {
+      'laki-laki': byGender('laki-laki'),
+      'perempuan': byGender('perempuan'),
+    }
+  }, [ranked])
+
+  const currentList = rankedByGender[genderTab]
+
   const filtered = useMemo(() => {
-    if (!search.trim()) return ranked
-    return ranked.filter((r) => r.participant_number.includes(search.trim()))
-  }, [ranked, search])
+    if (!search.trim()) return currentList
+    return currentList.filter((r) => r.participant_number.includes(search.trim()))
+  }, [currentList, search])
 
   const handleFinalize = async () => {
     if (!user) return
@@ -81,6 +102,9 @@ export default function RankingPage() {
 
   if (loading) return <PageLoading />
 
+  const lakiCount = rankedByGender['laki-laki'].length
+  const perempuanCount = rankedByGender['perempuan'].length
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -111,6 +135,38 @@ export default function RankingPage() {
         </div>
       </div>
 
+      {/* Gender Tabs */}
+      <div className="flex rounded-2xl border border-slate-200 overflow-hidden text-sm font-medium bg-slate-50 p-1 gap-1">
+        <button
+          onClick={() => { setGenderTab('laki-laki'); setSearch('') }}
+          className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl transition-all ${
+            genderTab === 'laki-laki'
+              ? 'bg-sky-600 text-white shadow-sm'
+              : 'text-slate-600 hover:bg-white hover:text-sky-700'
+          }`}
+          id="tab-laki-laki"
+        >
+          <span>♂ Laki-laki</span>
+          <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${
+            genderTab === 'laki-laki' ? 'bg-sky-500 text-white' : 'bg-slate-200 text-slate-600'
+          }`}>{lakiCount}</span>
+        </button>
+        <button
+          onClick={() => { setGenderTab('perempuan'); setSearch('') }}
+          className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl transition-all ${
+            genderTab === 'perempuan'
+              ? 'bg-pink-500 text-white shadow-sm'
+              : 'text-slate-600 hover:bg-white hover:text-pink-600'
+          }`}
+          id="tab-perempuan"
+        >
+          <span>♀ Perempuan</span>
+          <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${
+            genderTab === 'perempuan' ? 'bg-pink-400 text-white' : 'bg-slate-200 text-slate-600'
+          }`}>{perempuanCount}</span>
+        </button>
+      </div>
+
       {/* Search + Export + Admin actions */}
       <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center justify-between">
         <div className="relative w-full sm:w-52">
@@ -125,7 +181,7 @@ export default function RankingPage() {
           />
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <ExportButtons type="ranking" data={ranked} onPrint={() => window.open('/print/ranking', '_blank')} />
+          <ExportButtons type="ranking" data={filtered} onPrint={() => window.open('/print/ranking', '_blank')} />
           {isAdmin && (
             isPublished ? (
               <button
@@ -153,19 +209,30 @@ export default function RankingPage() {
       {filtered.length === 0 ? (
         <div className="text-center py-16 text-slate-400">
           <Trophy className="h-12 w-12 mx-auto mb-3 opacity-30" />
-          <p className="text-sm font-medium">Belum ada peserta dengan nilai finalized</p>
+          <p className="text-sm font-medium">
+            Belum ada peserta {genderTab === 'laki-laki' ? 'laki-laki' : 'perempuan'} dengan nilai finalized
+          </p>
           <p className="text-xs mt-1">Juri harus menyelesaikan dan memfinalisasi penilaian</p>
         </div>
       ) : (
         <>
           {/* Desktop */}
-          <div className="hidden md:block rounded-2xl border border-slate-200 bg-white overflow-hidden">
+          <div className="hidden md:block rounded-2xl border overflow-hidden bg-white" style={{
+            borderColor: genderTab === 'laki-laki' ? '#bae6fd' : '#fbcfe8'
+          }}>
+            <div className={`px-4 py-2.5 text-xs font-semibold flex items-center gap-2 border-b ${
+              genderTab === 'laki-laki'
+                ? 'bg-sky-50 text-sky-700 border-sky-100'
+                : 'bg-pink-50 text-pink-700 border-pink-100'
+            }`}>
+              {genderTab === 'laki-laki' ? '♂ Ranking Laki-laki' : '♀ Ranking Perempuan'}
+              <span className="font-normal text-inherit opacity-70">— {filtered.length} peserta</span>
+            </div>
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50">
                   <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase w-16">Ranking</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Nomor Peserta</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Jenis Kelamin</th>
                   <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Nilai Wudu</th>
                   <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Nilai Salat</th>
                   <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Total</th>
@@ -176,22 +243,11 @@ export default function RankingPage() {
                 {filtered.map((r) => (
                   <tr
                     key={r.participant_id}
-                    className={`transition-colors ${r.ranking <= 3 ? 'bg-amber-50/40 hover:bg-amber-50' : 'hover:bg-slate-50'}`}
+                    className={`transition-colors ${r.ranking <= 3 ? (genderTab === 'laki-laki' ? 'bg-sky-50/40 hover:bg-sky-50' : 'bg-pink-50/40 hover:bg-pink-50') : 'hover:bg-slate-50'}`}
                   >
                     <td className="px-4 py-3 text-center">{rankBadge(r.ranking)}</td>
                     <td className="px-4 py-3">
                       <span className="font-mono font-bold text-lg text-slate-900">{r.participant_number}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      {r.gender ? (
-                        <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
-                          r.gender === 'laki-laki' ? 'bg-sky-50 text-sky-700' : 'bg-pink-50 text-pink-700'
-                        }`}>
-                          {r.gender === 'laki-laki' ? '♂ Laki-laki' : '♀ Perempuan'}
-                        </span>
-                      ) : (
-                        <span className="text-slate-300 text-xs">—</span>
-                      )}
                     </td>
                     <td className="px-4 py-3 text-center">
                       <span className="font-semibold text-sky-700">{r.wudu_score}</span>
@@ -218,24 +274,26 @@ export default function RankingPage() {
 
           {/* Mobile cards */}
           <div className="md:hidden space-y-2">
+            {/* Mobile header */}
+            <div className={`rounded-xl px-4 py-2.5 text-xs font-semibold flex items-center gap-2 ${
+              genderTab === 'laki-laki' ? 'bg-sky-50 text-sky-700' : 'bg-pink-50 text-pink-700'
+            }`}>
+              {genderTab === 'laki-laki' ? '♂ Ranking Laki-laki' : '♀ Ranking Perempuan'}
+              <span className="font-normal opacity-70">— {filtered.length} peserta</span>
+            </div>
             {filtered.map((r) => (
               <div
                 key={r.participant_id}
-                className={`rounded-2xl border p-4 ${r.ranking <= 3 ? 'border-amber-200 bg-amber-50' : 'border-slate-200 bg-white'}`}
+                className={`rounded-2xl border p-4 ${
+                  r.ranking <= 3
+                    ? (genderTab === 'laki-laki' ? 'border-sky-200 bg-sky-50' : 'border-pink-200 bg-pink-50')
+                    : 'border-slate-200 bg-white'
+                }`}
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
                     <div className="text-xl">{rankBadge(r.ranking)}</div>
-                    <div>
-                      <span className="font-mono font-black text-2xl text-slate-900">{r.participant_number}</span>
-                      {r.gender && (
-                        <span className={`ml-2 text-xs font-medium px-1.5 py-0.5 rounded-full ${
-                          r.gender === 'laki-laki' ? 'bg-sky-50 text-sky-600' : 'bg-pink-50 text-pink-600'
-                        }`}>
-                          {r.gender === 'laki-laki' ? '♂ L' : '♀ P'}
-                        </span>
-                      )}
-                    </div>
+                    <span className="font-mono font-black text-2xl text-slate-900">{r.participant_number}</span>
                   </div>
                   <div className="text-right">
                     <p className={`text-lg font-extrabold ${r.percentage >= 90 ? 'text-emerald-600' : r.percentage >= 70 ? 'text-blue-600' : 'text-amber-600'}`}>

@@ -1,24 +1,27 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { ClipboardList, Search, Filter } from 'lucide-react'
+import { ClipboardList, Search } from 'lucide-react'
 import Link from 'next/link'
 import { useRanking } from '@/hooks/useRanking'
 import ExportButtons from '@/components/results/ExportButtons'
 import { PageLoading } from '@/components/ui/Loading'
 
 type StatusFilter = 'semua' | 'sebagian' | 'selesai'
+type GenderTab = 'laki-laki' | 'perempuan'
 
 export default function RekapPage() {
   const { allScores, loading } = useRanking()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('semua')
+  const [genderTab, setGenderTab] = useState<GenderTab>('laki-laki')
   const [page, setPage] = useState(0)
   const PAGE_SIZE = 20
 
   const filtered = useMemo(() => {
     return allScores
       .filter((s) => s.score_status !== 'belum')
+      .filter((s) => s.gender === genderTab)
       .filter((s) =>
         statusFilter === 'semua' ? true : s.score_status === statusFilter
       )
@@ -26,10 +29,13 @@ export default function RekapPage() {
         search ? s.participant_number.includes(search.trim()) : true
       )
       .sort((a, b) => a.participant_number.localeCompare(b.participant_number))
-  }, [allScores, search, statusFilter])
+  }, [allScores, search, statusFilter, genderTab])
 
   const paginated = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
+
+  const lakiCount = allScores.filter((s) => s.score_status !== 'belum' && s.gender === 'laki-laki').length
+  const perempuanCount = allScores.filter((s) => s.score_status !== 'belum' && s.gender === 'perempuan').length
 
   if (loading) return <PageLoading />
 
@@ -44,6 +50,38 @@ export default function RekapPage() {
           <h2 className="text-base font-semibold text-slate-900">Rekap Nilai</h2>
           <p className="text-xs text-slate-400">{filtered.length} peserta dengan nilai</p>
         </div>
+      </div>
+
+      {/* Gender Tabs */}
+      <div className="flex rounded-2xl border border-slate-200 overflow-hidden text-sm font-medium bg-slate-50 p-1 gap-1">
+        <button
+          onClick={() => { setGenderTab('laki-laki'); setSearch(''); setPage(0) }}
+          className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl transition-all ${
+            genderTab === 'laki-laki'
+              ? 'bg-sky-600 text-white shadow-sm'
+              : 'text-slate-600 hover:bg-white hover:text-sky-700'
+          }`}
+          id="rekap-tab-laki-laki"
+        >
+          <span>♂ Laki-laki</span>
+          <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${
+            genderTab === 'laki-laki' ? 'bg-sky-500 text-white' : 'bg-slate-200 text-slate-600'
+          }`}>{lakiCount}</span>
+        </button>
+        <button
+          onClick={() => { setGenderTab('perempuan'); setSearch(''); setPage(0) }}
+          className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl transition-all ${
+            genderTab === 'perempuan'
+              ? 'bg-pink-500 text-white shadow-sm'
+              : 'text-slate-600 hover:bg-white hover:text-pink-600'
+          }`}
+          id="rekap-tab-perempuan"
+        >
+          <span>♀ Perempuan</span>
+          <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${
+            genderTab === 'perempuan' ? 'bg-pink-400 text-white' : 'bg-slate-200 text-slate-600'
+          }`}>{perempuanCount}</span>
+        </button>
       </div>
 
       {/* Toolbar */}
@@ -75,24 +113,34 @@ export default function RekapPage() {
             ))}
           </div>
         </div>
-        <ExportButtons type="rekap" data={allScores} onPrint={() => window.open('/print/rekap', '_blank')} />
+        <ExportButtons type="rekap" data={filtered} onPrint={() => window.open('/print/rekap', '_blank')} />
       </div>
 
       {/* Table */}
       {filtered.length === 0 ? (
         <div className="text-center py-16 text-slate-400">
           <ClipboardList className="h-12 w-12 mx-auto mb-3 opacity-30" />
-          <p className="text-sm">Belum ada data nilai</p>
+          <p className="text-sm">Belum ada data nilai untuk {genderTab === 'laki-laki' ? 'laki-laki' : 'perempuan'}</p>
         </div>
       ) : (
         <>
-          <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
+          <div className={`rounded-2xl border overflow-hidden bg-white ${
+            genderTab === 'laki-laki' ? 'border-sky-100' : 'border-pink-100'
+          }`}>
+            {/* Gender section header */}
+            <div className={`px-4 py-2.5 text-xs font-semibold flex items-center gap-2 border-b ${
+              genderTab === 'laki-laki'
+                ? 'bg-sky-50 text-sky-700 border-sky-100'
+                : 'bg-pink-50 text-pink-700 border-pink-100'
+            }`}>
+              {genderTab === 'laki-laki' ? '♂ Rekap Nilai Laki-laki' : '♀ Rekap Nilai Perempuan'}
+              <span className="font-normal opacity-70">— {filtered.length} peserta</span>
+            </div>
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50">
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase w-10">No</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Nomor Peserta</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Jenis Kelamin</th>
                   <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Wudu</th>
                   <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Salat</th>
                   <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Total</th>
@@ -107,22 +155,13 @@ export default function RekapPage() {
                     <td className="px-4 py-3">
                       <Link
                         href={`/rekap/${s.participant_id}`}
-                        className="font-mono font-bold text-blue-700 hover:text-blue-900 hover:underline"
-                        id={`detail-${s.participant_number}`}
+                        className={`font-mono font-bold hover:underline ${
+                          genderTab === 'laki-laki' ? 'text-sky-700 hover:text-sky-900' : 'text-pink-600 hover:text-pink-800'
+                        }`}
+                        id={`detail-${s.participant_number}-${s.gender}`}
                       >
                         {s.participant_number}
                       </Link>
-                    </td>
-                    <td className="px-4 py-3">
-                      {s.gender ? (
-                        <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
-                          s.gender === 'laki-laki' ? 'bg-sky-50 text-sky-700' : 'bg-pink-50 text-pink-700'
-                        }`}>
-                          {s.gender === 'laki-laki' ? '♂ Laki-laki' : '♀ Perempuan'}
-                        </span>
-                      ) : (
-                        <span className="text-slate-300 text-xs">—</span>
-                      )}
                     </td>
                     <td className="px-4 py-3 text-center">
                       <span className="font-semibold text-sky-700">{s.wudu_score}</span>
