@@ -8,9 +8,9 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Table from '@/components/ui/Table'
 import Modal, { ConfirmModal } from '@/components/ui/Modal'
-import Badge from '@/components/ui/Badge'
+import Badge, { AssessmentBadge } from '@/components/ui/Badge'
 import Select from '@/components/ui/Select'
-import type { Participant } from '@/types'
+import type { Participant, Gender } from '@/types'
 import { formatDateTime } from '@/lib/utils'
 import toast from 'react-hot-toast'
 import Papa from 'papaparse'
@@ -41,6 +41,7 @@ export default function PesertaPage() {
 
   // Form state
   const [formNumber, setFormNumber] = useState('')
+  const [formGender, setFormGender] = useState<Gender>(null)
   const [formError, setFormError] = useState('')
   const [generateCount, setGenerateCount] = useState('20')
   const [generateStart, setGenerateStart] = useState('1')
@@ -76,11 +77,12 @@ export default function PesertaPage() {
       return
     }
     setActionLoading(true)
-    const ok = await addParticipant(num)
+    const ok = await addParticipant(num, formGender ?? undefined)
     setActionLoading(false)
     if (ok) {
       setModalAdd(false)
       setFormNumber('')
+      setFormGender(null)
       setFormError('')
     }
   }
@@ -94,11 +96,12 @@ export default function PesertaPage() {
       return
     }
     setActionLoading(true)
-    const ok = await editParticipant(modalEdit.id, num)
+    const ok = await editParticipant(modalEdit.id, num, formGender ?? undefined)
     setActionLoading(false)
     if (ok) {
       setModalEdit(null)
       setFormNumber('')
+      setFormGender(null)
       setFormError('')
     }
   }
@@ -195,10 +198,25 @@ export default function PesertaPage() {
     },
     {
       key: 'status',
-      label: 'Status Peserta',
+      label: 'Status Penilaian',
       render: (row: Participant) => (
-        <Badge variant="default">Belum Dinilai</Badge>
+        <AssessmentBadge status={row.assessment_status ?? 'belum_dinilai'} />
       ),
+    },
+    {
+      key: 'gender',
+      label: 'Jenis Kelamin',
+      render: (row: Participant) => (
+        <span className="text-sm text-slate-700">
+          {row.gender === 'laki-laki'
+            ? '♂ Laki-laki'
+            : row.gender === 'perempuan'
+            ? '♀ Perempuan'
+            : <span className="text-slate-400 text-xs italic">—</span>}
+        </span>
+      ),
+      className: 'hidden md:table-cell',
+      headerClassName: 'hidden md:table-cell',
     },
     {
       key: 'created_at',
@@ -222,6 +240,7 @@ export default function PesertaPage() {
                   onClick={(e) => {
                     e.stopPropagation()
                     setFormNumber(row.participant_number)
+                    setFormGender(row.gender)
                     setFormError('')
                     setModalEdit(row)
                   }}
@@ -310,6 +329,7 @@ export default function PesertaPage() {
               icon={<Plus className="h-3.5 w-3.5" />}
               onClick={() => {
                 setFormNumber('')
+                setFormGender(null)
                 setFormError('')
                 setModalAdd(true)
               }}
@@ -387,6 +407,17 @@ export default function PesertaPage() {
           autoFocus
           onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
         />
+        <Select
+          id="participant-gender-select"
+          label="Jenis Kelamin"
+          value={formGender ?? ''}
+          onChange={(e) => setFormGender(e.target.value as Gender || null)}
+          options={[
+            { value: 'laki-laki', label: '♂ Laki-laki' },
+            { value: 'perempuan', label: '♀ Perempuan' },
+          ]}
+          placeholder="Pilih jenis kelamin (opsional)"
+        />
       </Modal>
 
       {/* Edit Modal */}
@@ -414,6 +445,17 @@ export default function PesertaPage() {
           required
           autoFocus
           onKeyDown={(e) => e.key === 'Enter' && handleEdit()}
+        />
+        <Select
+          id="edit-participant-gender-select"
+          label="Jenis Kelamin"
+          value={formGender ?? ''}
+          onChange={(e) => setFormGender(e.target.value as Gender || null)}
+          options={[
+            { value: 'laki-laki', label: '♂ Laki-laki' },
+            { value: 'perempuan', label: '♀ Perempuan' },
+          ]}
+          placeholder="Pilih jenis kelamin (opsional)"
         />
       </Modal>
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import type { Participant } from '@/types'
+import type { Participant, Gender } from '@/types'
 import {
   getParticipants,
   createParticipant,
@@ -31,10 +31,11 @@ export function useParticipants() {
     setLoading(false)
   }, [])
 
-  const addParticipant = async (number: string) => {
+  const addParticipant = async (number: string, gender?: Gender) => {
     const { data, error } = await createParticipant({
       participant_number: number,
       status: 'active',
+      gender: gender ?? null,
     })
     if (error) {
       toast.error(error.includes('unique') ? 'Nomor peserta sudah ada' : error)
@@ -45,8 +46,8 @@ export function useParticipants() {
     return true
   }
 
-  const editParticipant = async (id: string, number: string) => {
-    const { data, error } = await updateParticipant(id, { participant_number: number })
+  const editParticipant = async (id: string, number: string, gender?: Gender) => {
+    const { data, error } = await updateParticipant(id, { participant_number: number, gender: gender ?? null })
     if (error) {
       toast.error(error.includes('unique') ? 'Nomor peserta sudah ada' : error)
       return false

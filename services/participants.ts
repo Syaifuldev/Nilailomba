@@ -1,16 +1,46 @@
 import { createClient } from '@/lib/supabase/client'
-import type { Participant, ParticipantFormData, ApiResponse } from '@/types'
+import type { Participant, ParticipantFormData, ApiResponse, Gender } from '@/types'
 
-// ─── Get all participants ──────────────────────────────────────────────────────
+// ─── Get all participants ───────────────────────────────────────────────────────
 export async function getParticipants(): Promise<ApiResponse<Participant[]>> {
   const supabase = createClient()
   const { data, error } = await supabase
     .from('participants')
-    .select('*')
+    .select(`
+      *,
+      wudu_scores(id, status),
+      prayer_scores(id, status)
+    `)
     .order('participant_number', { ascending: true })
 
   if (error) return { data: null, error: error.message }
-  return { data, error: null }
+
+  // Compute assessment_status from scores
+  const mapped = (data ?? []).map((p: any) => {
+    const wuduScores: { id: string; status: string }[] = p.wudu_scores ?? []
+    const prayerScores: { id: string; status: string }[] = p.prayer_scores ?? []
+
+    const hasWudu = wuduScores.length > 0
+    const hasPrayer = prayerScores.length > 0
+    const wuduFinalized = hasWudu && wuduScores.every((s) => s.status === 'finalized')
+    const prayerFinalized = hasPrayer && prayerScores.every((s) => s.status === 'finalized')
+    const wuduSaved = hasWudu && wuduScores.some((s) => s.status === 'saved' || s.status === 'finalized')
+    const prayerSaved = hasPrayer && prayerScores.some((s) => s.status === 'saved' || s.status === 'finalized')
+
+    let assessment_status: Participant['assessment_status'] = 'belum_dinilai'
+    if (wuduFinalized && prayerFinalized) {
+      assessment_status = 'selesai'
+    } else if (wuduFinalized || prayerFinalized) {
+      assessment_status = 'sebagian_selesai'
+    } else if (wuduSaved || prayerSaved) {
+      assessment_status = 'sedang_dinilai'
+    }
+
+    const { wudu_scores: _w, prayer_scores: _pr, ...rest } = p
+    return { ...rest, assessment_status } as Participant
+  })
+
+  return { data: mapped, error: null }
 }
 
 // ─── Get single participant ───────────────────────────────────────────────────
