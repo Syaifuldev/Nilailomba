@@ -75,9 +75,16 @@ export default function ParticipantSelector({ participants, selectedId, onSelect
           className="w-full h-9 px-3 rounded-xl border border-slate-300 bg-white text-left flex items-center justify-between gap-2 hover:border-blue-400 transition-colors"
           id="participant-dropdown-btn"
         >
-          <span className="font-mono font-bold text-blue-700 text-base tracking-widest">
-            {current ? current.participant_number : '—'}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="font-mono font-bold text-blue-700 text-base tracking-widest">
+              {current ? current.participant_number : '—'}
+            </span>
+            {current?.gender && (
+              <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${current.gender === 'laki-laki' ? 'bg-sky-50 text-sky-600' : 'bg-pink-50 text-pink-600'}`}>
+                {current.gender === 'laki-laki' ? '♂' : '♀'}
+              </span>
+            )}
+          </div>
           <span className="text-xs text-slate-400">
             {currentIndex >= 0
               ? `${currentIndex + 1} / ${sorted.length}`
@@ -115,7 +122,7 @@ export default function ParticipantSelector({ participants, selectedId, onSelect
                       setOpen(false)
                       setQuery('')
                     }}
-                    className={`w-full text-left px-3 py-2 rounded-xl text-sm transition-colors ${
+                    className={`w-full text-left px-3 py-2 rounded-xl text-sm transition-colors flex items-center justify-between gap-2 ${
                       p.id === selectedId
                         ? 'bg-blue-50 text-blue-700 font-semibold'
                         : 'hover:bg-slate-50 text-slate-700'
@@ -123,6 +130,11 @@ export default function ParticipantSelector({ participants, selectedId, onSelect
                     id={`select-participant-${p.participant_number}`}
                   >
                     <span className="font-mono font-bold">{p.participant_number}</span>
+                    {p.gender && (
+                      <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full shrink-0 ${p.gender === 'laki-laki' ? 'bg-sky-50 text-sky-600' : 'bg-pink-50 text-pink-600'}`}>
+                        {p.gender === 'laki-laki' ? '♂ L' : '♀ P'}
+                      </span>
+                    )}
                   </button>
                 ))
               )}

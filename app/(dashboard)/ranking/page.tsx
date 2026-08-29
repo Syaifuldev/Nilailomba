@@ -165,6 +165,7 @@ export default function RankingPage() {
                 <tr className="border-b border-slate-100 bg-slate-50">
                   <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase w-16">Ranking</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Nomor Peserta</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Jenis Kelamin</th>
                   <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Nilai Wudu</th>
                   <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Nilai Salat</th>
                   <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Total</th>
@@ -180,6 +181,17 @@ export default function RankingPage() {
                     <td className="px-4 py-3 text-center">{rankBadge(r.ranking)}</td>
                     <td className="px-4 py-3">
                       <span className="font-mono font-bold text-lg text-slate-900">{r.participant_number}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {r.gender ? (
+                        <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
+                          r.gender === 'laki-laki' ? 'bg-sky-50 text-sky-700' : 'bg-pink-50 text-pink-700'
+                        }`}>
+                          {r.gender === 'laki-laki' ? '♂ Laki-laki' : '♀ Perempuan'}
+                        </span>
+                      ) : (
+                        <span className="text-slate-300 text-xs">—</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-center">
                       <span className="font-semibold text-sky-700">{r.wudu_score}</span>
@@ -214,7 +226,16 @@ export default function RankingPage() {
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
                     <div className="text-xl">{rankBadge(r.ranking)}</div>
-                    <span className="font-mono font-black text-2xl text-slate-900">{r.participant_number}</span>
+                    <div>
+                      <span className="font-mono font-black text-2xl text-slate-900">{r.participant_number}</span>
+                      {r.gender && (
+                        <span className={`ml-2 text-xs font-medium px-1.5 py-0.5 rounded-full ${
+                          r.gender === 'laki-laki' ? 'bg-sky-50 text-sky-600' : 'bg-pink-50 text-pink-600'
+                        }`}>
+                          {r.gender === 'laki-laki' ? '♂ L' : '♀ P'}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="text-right">
                     <p className={`text-lg font-extrabold ${r.percentage >= 90 ? 'text-emerald-600' : r.percentage >= 70 ? 'text-blue-600' : 'text-amber-600'}`}>

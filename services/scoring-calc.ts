@@ -1,9 +1,10 @@
 import { createClient } from '@/lib/supabase/client'
-import type { ApiResponse } from '@/types'
+import type { ApiResponse, Gender } from '@/types'
 
 export interface ParticipantScore {
   participant_id: string
   participant_number: string
+  gender: Gender
   wudu_score: number
   salat_score: number
   total_score: number
@@ -17,7 +18,7 @@ export interface RankedParticipant extends ParticipantScore {
   ranking: number
 }
 
-// ─── Get all participant scores (from view) ───────────────────────────────────
+// ─── Get all participant scores (from view + gender join) ─────────────────────────────
 export async function getParticipantScores(): Promise<ParticipantScore[]> {
   const supabase = createClient()
   const { data, error } = await supabase
@@ -29,10 +30,23 @@ export async function getParticipantScores(): Promise<ParticipantScore[]> {
     console.error('getParticipantScores error:', error.message)
     return []
   }
-  return (data ?? []) as ParticipantScore[]
+
+  // Enrich with gender from participants table
+  const ids = (data ?? []).map((d: any) => d.participant_id)
+  const { data: participantsData } = await supabase
+    .from('participants')
+    .select('id, gender')
+    .in('id', ids)
+
+  const genderMap = new Map((participantsData ?? []).map((p: any) => [p.id, p.gender]))
+
+  return (data ?? []).map((d: any) => ({
+    ...d,
+    gender: genderMap.get(d.participant_id) ?? null,
+  })) as ParticipantScore[]
 }
 
-// ─── Get ranked participants (finalized only) ─────────────────────────────────
+// ─── Get ranked participants (finalized only) ─────────────────────────────────────────────────────
 export async function getRankedParticipants(): Promise<RankedParticipant[]> {
   const supabase = createClient()
   const { data, error } = await supabase
@@ -44,7 +58,20 @@ export async function getRankedParticipants(): Promise<RankedParticipant[]> {
     console.error('getRankedParticipants error:', error.message)
     return []
   }
-  return (data ?? []) as RankedParticipant[]
+
+  // Enrich with gender from participants table
+  const ids = (data ?? []).map((d: any) => d.participant_id)
+  const { data: participantsData } = await supabase
+    .from('participants')
+    .select('id, gender')
+    .in('id', ids)
+
+  const genderMap = new Map((participantsData ?? []).map((p: any) => [p.id, p.gender]))
+
+  return (data ?? []).map((d: any) => ({
+    ...d,
+    gender: genderMap.get(d.participant_id) ?? null,
+  })) as RankedParticipant[]
 }
 
 // ─── Get score for a single participant ──────────────────────────────────────

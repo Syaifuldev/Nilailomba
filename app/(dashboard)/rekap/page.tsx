@@ -92,6 +92,7 @@ export default function RekapPage() {
                 <tr className="border-b border-slate-100 bg-slate-50">
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase w-10">No</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Nomor Peserta</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Jenis Kelamin</th>
                   <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Wudu</th>
                   <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Salat</th>
                   <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Total</th>
@@ -111,6 +112,17 @@ export default function RekapPage() {
                       >
                         {s.participant_number}
                       </Link>
+                    </td>
+                    <td className="px-4 py-3">
+                      {s.gender ? (
+                        <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
+                          s.gender === 'laki-laki' ? 'bg-sky-50 text-sky-700' : 'bg-pink-50 text-pink-700'
+                        }`}>
+                          {s.gender === 'laki-laki' ? '♂ Laki-laki' : '♀ Perempuan'}
+                        </span>
+                      ) : (
+                        <span className="text-slate-300 text-xs">—</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-center">
                       <span className="font-semibold text-sky-700">{s.wudu_score}</span>

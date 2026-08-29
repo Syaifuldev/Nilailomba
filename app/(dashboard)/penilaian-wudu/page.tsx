@@ -170,6 +170,16 @@ export default function PenilaianWuduPage() {
                 {selectedParticipant.participant_number}
               </p>
             </div>
+            {selectedParticipant.gender && (
+              <div>
+                <p className="text-xs text-slate-400">Jenis Kelamin</p>
+                <p className={`text-sm font-semibold ${
+                  selectedParticipant.gender === 'laki-laki' ? 'text-sky-700' : 'text-pink-600'
+                }`}>
+                  {selectedParticipant.gender === 'laki-laki' ? '♂ Laki-laki' : '♀ Perempuan'}
+                </p>
+              </div>
+            )}
             <div>
               <p className="text-xs text-slate-400">Nama Juri</p>
               <p className="text-sm font-semibold text-slate-900">{judgeName}</p>
