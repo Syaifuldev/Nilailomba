@@ -41,7 +41,7 @@ export default function PesertaPage() {
 
   // Form state
   const [formNumber, setFormNumber] = useState('')
-  const [formGender, setFormGender] = useState<Gender>(null)
+  const [formGender, setFormGender] = useState<Gender>('laki-laki')
   const [formError, setFormError] = useState('')
   const [generateCount, setGenerateCount] = useState('20')
   const [generateStart, setGenerateStart] = useState('1')
@@ -76,13 +76,17 @@ export default function PesertaPage() {
       setFormError('Nomor peserta wajib diisi')
       return
     }
+    if (!formGender) {
+      setFormError('Jenis kelamin wajib dipilih')
+      return
+    }
     setActionLoading(true)
-    const ok = await addParticipant(num, formGender ?? undefined)
+    const ok = await addParticipant(num, formGender)
     setActionLoading(false)
     if (ok) {
       setModalAdd(false)
       setFormNumber('')
-      setFormGender(null)
+      setFormGender('laki-laki')
       setFormError('')
     }
   }
@@ -95,13 +99,17 @@ export default function PesertaPage() {
       setFormError('Nomor peserta wajib diisi')
       return
     }
+    if (!formGender) {
+      setFormError('Jenis kelamin wajib dipilih')
+      return
+    }
     setActionLoading(true)
-    const ok = await editParticipant(modalEdit.id, num, formGender ?? undefined)
+    const ok = await editParticipant(modalEdit.id, num, formGender)
     setActionLoading(false)
     if (ok) {
       setModalEdit(null)
       setFormNumber('')
-      setFormGender(null)
+      setFormGender('laki-laki')
       setFormError('')
     }
   }
@@ -189,11 +197,22 @@ export default function PesertaPage() {
   const columns = [
     {
       key: 'participant_number',
-      label: 'Nomor Peserta',
+      label: 'Peserta',
       render: (row: Participant) => (
-        <span className="font-mono font-semibold text-slate-900 text-base">
-          {row.participant_number}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="font-mono font-bold text-slate-900 text-base">
+            {row.participant_number}
+          </span>
+          {row.gender && (
+            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+              row.gender === 'laki-laki'
+                ? 'bg-sky-50 text-sky-700 border border-sky-200'
+                : 'bg-pink-50 text-pink-700 border border-pink-200'
+            }`}>
+              {row.gender === 'laki-laki' ? '♂ L' : '♀ P'}
+            </span>
+          )}
+        </div>
       ),
     },
     {
@@ -203,21 +222,7 @@ export default function PesertaPage() {
         <AssessmentBadge status={row.assessment_status ?? 'belum_dinilai'} />
       ),
     },
-    {
-      key: 'gender',
-      label: 'Jenis Kelamin',
-      render: (row: Participant) => (
-        <span className="text-sm text-slate-700">
-          {row.gender === 'laki-laki'
-            ? '♂ Laki-laki'
-            : row.gender === 'perempuan'
-            ? '♀ Perempuan'
-            : <span className="text-slate-400 text-xs italic">—</span>}
-        </span>
-      ),
-      className: 'hidden md:table-cell',
-      headerClassName: 'hidden md:table-cell',
-    },
+    // Kolom gender tidak perlu lagi (sudah tampil inline di kolom Peserta)
     {
       key: 'created_at',
       label: 'Ditambahkan',
@@ -240,7 +245,7 @@ export default function PesertaPage() {
                   onClick={(e) => {
                     e.stopPropagation()
                     setFormNumber(row.participant_number)
-                    setFormGender(row.gender)
+                    setFormGender(row.gender ?? 'laki-laki')
                     setFormError('')
                     setModalEdit(row)
                   }}
@@ -256,7 +261,7 @@ export default function PesertaPage() {
                     e.stopPropagation()
                     setModalDelete(row)
                   }}
-                  id={`delete-participant-${row.participant_number}`}
+                  id={`delete-participant-${row.participant_number}-${row.gender}`}
                 >
                   Hapus
                 </Button>
@@ -329,7 +334,7 @@ export default function PesertaPage() {
               icon={<Plus className="h-3.5 w-3.5" />}
               onClick={() => {
                 setFormNumber('')
-                setFormGender(null)
+                setFormGender('laki-laki')
                 setFormError('')
                 setModalAdd(true)
               }}
@@ -410,13 +415,13 @@ export default function PesertaPage() {
         <Select
           id="participant-gender-select"
           label="Jenis Kelamin"
-          value={formGender ?? ''}
-          onChange={(e) => setFormGender(e.target.value as Gender || null)}
+          value={formGender ?? 'laki-laki'}
+          onChange={(e) => setFormGender(e.target.value as Gender)}
           options={[
             { value: 'laki-laki', label: '♂ Laki-laki' },
             { value: 'perempuan', label: '♀ Perempuan' },
           ]}
-          placeholder="Pilih jenis kelamin (opsional)"
+          required
         />
       </Modal>
 
@@ -449,13 +454,13 @@ export default function PesertaPage() {
         <Select
           id="edit-participant-gender-select"
           label="Jenis Kelamin"
-          value={formGender ?? ''}
-          onChange={(e) => setFormGender(e.target.value as Gender || null)}
+          value={formGender ?? 'laki-laki'}
+          onChange={(e) => setFormGender(e.target.value as Gender)}
           options={[
             { value: 'laki-laki', label: '♂ Laki-laki' },
             { value: 'perempuan', label: '♀ Perempuan' },
           ]}
-          placeholder="Pilih jenis kelamin (opsional)"
+          required
         />
       </Modal>
 
@@ -465,7 +470,7 @@ export default function PesertaPage() {
         onClose={() => setModalDelete(null)}
         onConfirm={handleDelete}
         title="Hapus Peserta"
-        description={`Apakah Anda yakin ingin menghapus peserta nomor ${modalDelete?.participant_number}? Tindakan ini tidak dapat dibatalkan.`}
+        description={`Apakah Anda yakin ingin menghapus peserta ${modalDelete?.participant_number} ${modalDelete?.gender === 'laki-laki' ? '(Laki-laki)' : modalDelete?.gender === 'perempuan' ? '(Perempuan)' : ''}? Tindakan ini tidak dapat dibatalkan.`}
         confirmLabel="Hapus"
         loading={actionLoading}
       />
@@ -499,8 +504,9 @@ export default function PesertaPage() {
         <div className="space-y-4">
           <div className="rounded-xl bg-blue-50 p-3.5 text-sm text-blue-700">
             <p className="font-medium mb-1">Contoh:</p>
-            <p>Nomor awal: <strong>1</strong>, Jumlah: <strong>20</strong></p>
-            <p className="mt-1">→ Menghasilkan: <strong>001, 002, ..., 020</strong></p>
+            <p>Nomor awal: <strong>1</strong>, Jumlah: <strong>5</strong></p>
+            <p className="mt-1">→ Menghasilkan: <strong>001-L, 001-P, 002-L, 002-P, ..., 005-L, 005-P</strong></p>
+            <p className="mt-1 text-blue-600 text-xs">Setiap nomor otomatis dibuat untuk Laki-laki dan Perempuan.</p>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <Input

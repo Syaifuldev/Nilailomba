@@ -15,13 +15,26 @@ export default function ParticipantSelector({ participants, selectedId, onSelect
   const [open, setOpen] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
 
-  const sorted = [...participants].sort((a, b) =>
-    a.participant_number.localeCompare(b.participant_number)
-  )
+  const sorted = [...participants].sort((a, b) => {
+    const numCmp = a.participant_number.localeCompare(b.participant_number)
+    if (numCmp !== 0) return numCmp
+    // laki-laki comes before perempuan alphabetically
+    return (a.gender ?? '').localeCompare(b.gender ?? '')
+  })
 
   const filtered = query
-    ? sorted.filter((p) => p.participant_number.includes(query.trim()))
+    ? sorted.filter((p) =>
+        p.participant_number.includes(query.trim()) ||
+        (query.toLowerCase().includes('l') && p.gender === 'laki-laki') ||
+        (query.toLowerCase().includes('p') && p.gender === 'perempuan')
+      )
     : sorted
+
+  // Helper: combined label e.g. "001 - L" or "001 - P"
+  const participantLabel = (p: Participant) =>
+    p.gender
+      ? `${p.participant_number} - ${p.gender === 'laki-laki' ? 'L' : 'P'}`
+      : p.participant_number
 
   const currentIndex = sorted.findIndex((p) => p.id === selectedId)
   const current = currentIndex >= 0 ? sorted[currentIndex] : null
@@ -76,14 +89,11 @@ export default function ParticipantSelector({ participants, selectedId, onSelect
           id="participant-dropdown-btn"
         >
           <div className="flex items-center gap-2">
-            <span className="font-mono font-bold text-blue-700 text-base tracking-widest">
-              {current ? current.participant_number : '—'}
+            <span className={`font-mono font-bold text-base tracking-widest ${
+              current?.gender === 'laki-laki' ? 'text-sky-700' : current?.gender === 'perempuan' ? 'text-pink-600' : 'text-blue-700'
+            }`}>
+              {current ? participantLabel(current) : '—'}
             </span>
-            {current?.gender && (
-              <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${current.gender === 'laki-laki' ? 'bg-sky-50 text-sky-600' : 'bg-pink-50 text-pink-600'}`}>
-                {current.gender === 'laki-laki' ? '♂' : '♀'}
-              </span>
-            )}
           </div>
           <span className="text-xs text-slate-400">
             {currentIndex >= 0
@@ -124,15 +134,15 @@ export default function ParticipantSelector({ participants, selectedId, onSelect
                     }}
                     className={`w-full text-left px-3 py-2 rounded-xl text-sm transition-colors flex items-center justify-between gap-2 ${
                       p.id === selectedId
-                        ? 'bg-blue-50 text-blue-700 font-semibold'
+                        ? p.gender === 'laki-laki' ? 'bg-sky-50 text-sky-700 font-semibold' : 'bg-pink-50 text-pink-700 font-semibold'
                         : 'hover:bg-slate-50 text-slate-700'
                     }`}
-                    id={`select-participant-${p.participant_number}`}
+                    id={`select-participant-${p.participant_number}-${p.gender ?? 'none'}`}
                   >
-                    <span className="font-mono font-bold">{p.participant_number}</span>
+                    <span className="font-mono font-bold">{participantLabel(p)}</span>
                     {p.gender && (
-                      <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full shrink-0 ${p.gender === 'laki-laki' ? 'bg-sky-50 text-sky-600' : 'bg-pink-50 text-pink-600'}`}>
-                        {p.gender === 'laki-laki' ? '♂ L' : '♀ P'}
+                      <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full shrink-0 ${p.gender === 'laki-laki' ? 'bg-sky-100 text-sky-600' : 'bg-pink-100 text-pink-600'}`}>
+                        {p.gender === 'laki-laki' ? '♂ Laki-laki' : '♀ Perempuan'}
                       </span>
                     )}
                   </button>

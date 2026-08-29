@@ -31,30 +31,40 @@ export function useParticipants() {
     setLoading(false)
   }, [])
 
-  const addParticipant = async (number: string, gender?: Gender) => {
+  const addParticipant = async (number: string, gender: Gender) => {
     const { data, error } = await createParticipant({
       participant_number: number,
       status: 'active',
-      gender: gender ?? null,
+      gender,
     })
     if (error) {
-      toast.error(error.includes('unique') ? 'Nomor peserta sudah ada' : error)
+      toast.error(error.includes('unique') || error.includes('duplicate') ? 'Peserta dengan nomor dan jenis kelamin ini sudah ada' : error)
       return false
     }
-    if (data) setParticipants((prev) => [...prev, data].sort((a, b) => a.participant_number.localeCompare(b.participant_number)))
+    if (data) setParticipants((prev) =>
+      [...prev, data].sort((a, b) => {
+        const numCmp = a.participant_number.localeCompare(b.participant_number)
+        if (numCmp !== 0) return numCmp
+        return (a.gender ?? '').localeCompare(b.gender ?? '')
+      })
+    )
     toast.success('Peserta berhasil ditambahkan')
     return true
   }
 
-  const editParticipant = async (id: string, number: string, gender?: Gender) => {
-    const { data, error } = await updateParticipant(id, { participant_number: number, gender: gender ?? null })
+  const editParticipant = async (id: string, number: string, gender: Gender) => {
+    const { data, error } = await updateParticipant(id, { participant_number: number, gender })
     if (error) {
-      toast.error(error.includes('unique') ? 'Nomor peserta sudah ada' : error)
+      toast.error(error.includes('unique') || error.includes('duplicate') ? 'Peserta dengan nomor dan jenis kelamin ini sudah ada' : error)
       return false
     }
     if (data) {
       setParticipants((prev) =>
-        prev.map((p) => (p.id === id ? data : p)).sort((a, b) => a.participant_number.localeCompare(b.participant_number))
+        prev.map((p) => (p.id === id ? data : p)).sort((a, b) => {
+          const numCmp = a.participant_number.localeCompare(b.participant_number)
+          if (numCmp !== 0) return numCmp
+          return (a.gender ?? '').localeCompare(b.gender ?? '')
+        })
       )
     }
     toast.success('Peserta berhasil diperbarui')
@@ -86,14 +96,18 @@ export function useParticipants() {
   const generateBulk = async (count: number, startFrom: number = 1) => {
     const { data, error } = await generateParticipants(count, startFrom)
     if (error) {
-      toast.error(error.includes('unique') ? 'Sebagian nomor sudah ada' : error)
+      toast.error(error.includes('unique') || error.includes('duplicate') ? 'Sebagian nomor sudah ada' : error)
       return false
     }
     if (data) {
       setParticipants((prev) =>
-        [...prev, ...data].sort((a, b) => a.participant_number.localeCompare(b.participant_number))
+        [...prev, ...data].sort((a, b) => {
+          const numCmp = a.participant_number.localeCompare(b.participant_number)
+          if (numCmp !== 0) return numCmp
+          return (a.gender ?? '').localeCompare(b.gender ?? '')
+        })
       )
-      toast.success(`${data.length} peserta berhasil digenerate`)
+      toast.success(`${data.length} peserta berhasil digenerate (${data.length / 2} nomor × L+P)`)
     }
     return true
   }

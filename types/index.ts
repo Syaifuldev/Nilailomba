@@ -4,7 +4,7 @@ export type JudgingCategory = 'wudu' | 'salat' | 'wudu_dan_salat'
 
 export type ParticipantStatus = 'active' | 'inactive'
 
-export type Gender = 'laki-laki' | 'perempuan' | null
+export type Gender = 'laki-laki' | 'perempuan'
 
 export type CompetitionStatus = 'draft' | 'active' | 'completed'
 
@@ -44,7 +44,7 @@ export interface Participant {
   id: string
   participant_number: string
   status: ParticipantStatus
-  gender: Gender
+  gender: Gender | null  // null untuk data lama yang belum diisi
   created_at: string
   updated_at: string
   assessment_status?: AssessmentStatus
@@ -99,7 +99,7 @@ export interface ApiResponse<T> {
 export interface ParticipantFormData {
   participant_number: string
   status: ParticipantStatus
-  gender?: Gender
+  gender: Gender  // wajib diisi
 }
 
 export interface JudgeFormData {

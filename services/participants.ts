@@ -11,7 +11,9 @@ export async function getParticipants(): Promise<ApiResponse<Participant[]>> {
       wudu_scores(id, status),
       prayer_scores(id, status)
     `)
+    // Sort: nomor asc, laki-laki sebelum perempuan
     .order('participant_number', { ascending: true })
+    .order('gender', { ascending: true })
 
   if (error) return { data: null, error: error.message }
 
@@ -112,46 +114,52 @@ export async function deleteParticipants(ids: string[]): Promise<ApiResponse<nul
   return { data: null, error: null }
 }
 
-// ─── Generate participants in bulk ────────────────────────────────────────────
+// ─── Generate participants in bulk (pasangan L+P tiap nomor) ────────────────────
 export async function generateParticipants(
   count: number,
   startFrom: number = 1
 ): Promise<ApiResponse<Participant[]>> {
   const supabase = createClient()
 
-  const participants = []
+  // Setiap nomor menghasilkan 2 peserta: Laki-laki dan Perempuan
+  const participants: { participant_number: string; status: 'active'; gender: Gender }[] = []
   for (let i = startFrom; i < startFrom + count; i++) {
-    participants.push({
-      participant_number: String(i).padStart(3, '0'),
-      status: 'active' as const,
-    })
+    const num = String(i).padStart(3, '0')
+    participants.push({ participant_number: num, status: 'active', gender: 'laki-laki' })
+    participants.push({ participant_number: num, status: 'active', gender: 'perempuan' })
   }
 
+  // Insert dengan skip jika pasangan sudah ada
   const { data, error } = await supabase
     .from('participants')
-    .insert(participants)
+    .upsert(participants, {
+      onConflict: 'participant_number,gender',
+      ignoreDuplicates: true,
+    })
     .select()
 
   if (error) return { data: null, error: error.message }
   return { data, error: null }
 }
 
-// ─── Bulk import participants ─────────────────────────────────────────────────
+// ─── Bulk import participants (pasangan L+P) ─────────────────────────────────────────────
 export async function importParticipants(
   numbers: string[]
 ): Promise<ApiResponse<{ inserted: number; skipped: number }>> {
   const supabase = createClient()
 
-  const participants = numbers.map((num) => ({
-    participant_number: num.trim().padStart(3, '0'),
-    status: 'active' as const,
-  }))
+  // Buat pasangan L+P untuk setiap nomor
+  const participants: { participant_number: string; status: 'active'; gender: Gender }[] = []
+  for (const num of numbers) {
+    const padded = num.trim().padStart(3, '0')
+    participants.push({ participant_number: padded, status: 'active', gender: 'laki-laki' })
+    participants.push({ participant_number: padded, status: 'active', gender: 'perempuan' })
+  }
 
-  // Use upsert to skip duplicates
   const { data, error } = await supabase
     .from('participants')
     .upsert(participants, {
-      onConflict: 'participant_number',
+      onConflict: 'participant_number,gender',
       ignoreDuplicates: true,
     })
     .select()
