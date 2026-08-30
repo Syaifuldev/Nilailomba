@@ -41,7 +41,12 @@ export default function FinalizeModal({
           <Button
             onClick={onConfirm}
             loading={loading}
-            className="bg-amber-500 hover:bg-amber-600 text-white"
+            disabled={hasEmpty}
+            className={`${
+              hasEmpty
+                ? 'bg-slate-300 hover:bg-slate-300 text-slate-500 cursor-not-allowed'
+                : 'bg-amber-500 hover:bg-amber-600 text-white'
+            }`}
             icon={<Lock className="h-4 w-4" />}
             id="confirm-finalize-btn"
           >
@@ -60,27 +65,27 @@ export default function FinalizeModal({
                 Ada {emptyCount} kriteria yang belum dinilai!
               </p>
               <p className="mt-1 text-xs text-red-700">
-                Beberapa nilai masih kosong (0 / belum diisi). Pastikan semua
-                kriteria sudah terisi sebelum finalisasi, atau lanjutkan jika
-                nilai 0 memang disengaja.
+                Anda tidak dapat melakukan finalisasi. Harap kembali dan pastikan semua kriteria sudah terisi dengan nilai (minimal 0 jika memang 0) sebelum mengunci nilai.
               </p>
             </div>
           </div>
         )}
 
-        {/* Standard warning */}
-        <div className="flex gap-3 rounded-xl bg-amber-50 border border-amber-200 p-4">
-          <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-semibold text-amber-800">
-              Nilai akan dikunci setelah finalisasi
-            </p>
-            <p className="mt-1 text-xs text-amber-700">
-              Setelah difinalisasi, Anda tidak dapat mengubah nilai kembali.
-              Hanya Admin yang dapat membuka kembali nilai yang sudah difinalisasi.
-            </p>
+        {/* Standard warning (Sembunyikan jika ada error kosong agar tidak membingungkan) */}
+        {!hasEmpty && (
+          <div className="flex gap-3 rounded-xl bg-amber-50 border border-amber-200 p-4">
+            <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-amber-800">
+                Nilai akan dikunci setelah finalisasi
+              </p>
+              <p className="mt-1 text-xs text-amber-700">
+                Setelah difinalisasi, Anda tidak dapat mengubah nilai kembali.
+                Hanya Admin yang dapat membuka kembali nilai yang sudah difinalisasi.
+              </p>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Summary */}
         <div className="rounded-xl border border-slate-200 p-4 space-y-2">
