@@ -1,6 +1,6 @@
 'use client'
 
-import { Lock, AlertTriangle } from 'lucide-react'
+import { Lock, AlertTriangle, XCircle } from 'lucide-react'
 import Modal from '@/components/ui/Modal'
 import Button from '@/components/ui/Button'
 
@@ -12,6 +12,8 @@ interface Props {
   maxScore: number
   participantNumber: string
   loading?: boolean
+  /** Jumlah kriteria/grup yang belum diisi nilainya */
+  emptyCount?: number
 }
 
 export default function FinalizeModal({
@@ -22,7 +24,10 @@ export default function FinalizeModal({
   maxScore,
   participantNumber,
   loading,
+  emptyCount = 0,
 }: Props) {
+  const hasEmpty = emptyCount > 0
+
   return (
     <Modal
       open={open}
@@ -46,7 +51,24 @@ export default function FinalizeModal({
       }
     >
       <div className="space-y-4">
-        {/* Warning */}
+        {/* Warning nilai kosong — tampil hanya jika ada yang kosong */}
+        {hasEmpty && (
+          <div className="flex gap-3 rounded-xl bg-red-50 border border-red-200 p-4">
+            <XCircle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-red-800">
+                Ada {emptyCount} kriteria yang belum dinilai!
+              </p>
+              <p className="mt-1 text-xs text-red-700">
+                Beberapa nilai masih kosong (0 / belum diisi). Pastikan semua
+                kriteria sudah terisi sebelum finalisasi, atau lanjutkan jika
+                nilai 0 memang disengaja.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Standard warning */}
         <div className="flex gap-3 rounded-xl bg-amber-50 border border-amber-200 p-4">
           <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
           <div>
@@ -68,7 +90,7 @@ export default function FinalizeModal({
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-slate-500">Total Nilai</span>
-            <span className="font-bold text-blue-700">
+            <span className={`font-bold ${hasEmpty ? 'text-red-600' : 'text-blue-700'}`}>
               {totalScore} / {maxScore}
             </span>
           </div>
@@ -78,6 +100,12 @@ export default function FinalizeModal({
               {maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0}%
             </span>
           </div>
+          {hasEmpty && (
+            <div className="flex justify-between text-sm pt-1 border-t border-red-100">
+              <span className="text-red-500">Kriteria belum dinilai</span>
+              <span className="font-bold text-red-600">{emptyCount} kriteria</span>
+            </div>
+          )}
         </div>
 
         <p className="text-xs text-slate-400 text-center">

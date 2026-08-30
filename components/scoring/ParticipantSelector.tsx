@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Search, CheckCircle2, Lock } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import type { Participant } from '@/types'
 
@@ -8,9 +8,19 @@ interface Props {
   participants: Participant[]
   selectedId: string | null
   onSelect: (participant: Participant) => void
+  /** Set of participant IDs that already have score records (any status) */
+  scoredIds?: Set<string>
+  /** Set of participant IDs with finalized scores */
+  finalizedIds?: Set<string>
 }
 
-export default function ParticipantSelector({ participants, selectedId, onSelect }: Props) {
+export default function ParticipantSelector({
+  participants,
+  selectedId,
+  onSelect,
+  scoredIds,
+  finalizedIds,
+}: Props) {
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
@@ -67,6 +77,27 @@ export default function ParticipantSelector({ participants, selectedId, onSelect
     return () => document.removeEventListener('keydown', handler)
   }, [currentIndex, sorted]) // eslint-disable-line
 
+  // Badge for scored status
+  const getStatusBadge = (p: Participant) => {
+    if (finalizedIds?.has(p.id)) {
+      return (
+        <span className="flex items-center gap-0.5 text-[10px] font-semibold text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-1.5 py-0.5 shrink-0">
+          <Lock className="h-2.5 w-2.5" />
+          Final
+        </span>
+      )
+    }
+    if (scoredIds?.has(p.id)) {
+      return (
+        <span className="flex items-center gap-0.5 text-[10px] font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-full px-1.5 py-0.5 shrink-0">
+          <CheckCircle2 className="h-2.5 w-2.5" />
+          Dinilai
+        </span>
+      )
+    }
+    return null
+  }
+
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
       {/* Prev button */}
@@ -94,6 +125,8 @@ export default function ParticipantSelector({ participants, selectedId, onSelect
             }`}>
               {current ? participantLabel(current) : '—'}
             </span>
+            {/* Status badge for selected participant */}
+            {current && getStatusBadge(current)}
           </div>
           <span className="text-xs text-slate-400">
             {currentIndex >= 0
@@ -103,7 +136,7 @@ export default function ParticipantSelector({ participants, selectedId, onSelect
         </button>
 
         {open && (
-          <div className="absolute top-full mt-1 left-0 w-64 z-50 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
+          <div className="absolute top-full mt-1 left-0 w-72 z-50 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
             {/* Search */}
             <div className="p-2 border-b border-slate-100">
               <div className="relative">
@@ -119,34 +152,67 @@ export default function ParticipantSelector({ participants, selectedId, onSelect
                 />
               </div>
             </div>
+            {/* Legend */}
+            {(scoredIds || finalizedIds) && (
+              <div className="px-3 py-1.5 border-b border-slate-100 flex items-center gap-3">
+                {scoredIds && (
+                  <span className="flex items-center gap-1 text-[10px] text-emerald-600">
+                    <CheckCircle2 className="h-2.5 w-2.5" /> Sudah dinilai
+                  </span>
+                )}
+                {finalizedIds && (
+                  <span className="flex items-center gap-1 text-[10px] text-amber-600">
+                    <Lock className="h-2.5 w-2.5" /> Difinalisasi
+                  </span>
+                )}
+              </div>
+            )}
             {/* List */}
             <div className="max-h-60 overflow-y-auto p-1.5">
               {filtered.length === 0 ? (
                 <p className="text-center text-xs text-slate-400 py-4">Tidak ditemukan</p>
               ) : (
-                filtered.map((p) => (
-                  <button
-                    key={p.id}
-                    onClick={() => {
-                      onSelect(p)
-                      setOpen(false)
-                      setQuery('')
-                    }}
-                    className={`w-full text-left px-3 py-2 rounded-xl text-sm transition-colors flex items-center justify-between gap-2 ${
-                      p.id === selectedId
-                        ? p.gender === 'laki-laki' ? 'bg-sky-50 text-sky-700 font-semibold' : 'bg-pink-50 text-pink-700 font-semibold'
-                        : 'hover:bg-slate-50 text-slate-700'
-                    }`}
-                    id={`select-participant-${p.participant_number}-${p.gender ?? 'none'}`}
-                  >
-                    <span className="font-mono font-bold">{participantLabel(p)}</span>
-                    {p.gender && (
-                      <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full shrink-0 ${p.gender === 'laki-laki' ? 'bg-sky-100 text-sky-600' : 'bg-pink-100 text-pink-600'}`}>
-                        {p.gender === 'laki-laki' ? '♂ Laki-laki' : '♀ Perempuan'}
-                      </span>
-                    )}
-                  </button>
-                ))
+                filtered.map((p) => {
+                  const isFinalized = finalizedIds?.has(p.id)
+                  const isScored = scoredIds?.has(p.id)
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={() => {
+                        onSelect(p)
+                        setOpen(false)
+                        setQuery('')
+                      }}
+                      className={`w-full text-left px-3 py-2 rounded-xl text-sm transition-colors flex items-center justify-between gap-2 ${
+                        p.id === selectedId
+                          ? p.gender === 'laki-laki' ? 'bg-sky-50 text-sky-700 font-semibold' : 'bg-pink-50 text-pink-700 font-semibold'
+                          : isFinalized
+                            ? 'hover:bg-amber-50/60 text-slate-700'
+                            : isScored
+                              ? 'hover:bg-emerald-50/60 text-slate-700'
+                              : 'hover:bg-slate-50 text-slate-700'
+                      }`}
+                      id={`select-participant-${p.participant_number}-${p.gender ?? 'none'}`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        {/* Score status icon */}
+                        {isFinalized ? (
+                          <Lock className="h-3 w-3 text-amber-500 shrink-0" />
+                        ) : isScored ? (
+                          <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0" />
+                        ) : (
+                          <span className="h-3 w-3 shrink-0" />
+                        )}
+                        <span className="font-mono font-bold">{participantLabel(p)}</span>
+                      </div>
+                      {p.gender && (
+                        <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full shrink-0 ${p.gender === 'laki-laki' ? 'bg-sky-100 text-sky-600' : 'bg-pink-100 text-pink-600'}`}>
+                          {p.gender === 'laki-laki' ? '♂ Laki-laki' : '♀ Perempuan'}
+                        </span>
+                      )}
+                    </button>
+                  )
+                })
               )}
             </div>
           </div>

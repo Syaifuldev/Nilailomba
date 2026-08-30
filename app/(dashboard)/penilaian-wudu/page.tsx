@@ -4,7 +4,11 @@ import { useEffect, useState, useCallback } from 'react'
 import { Droplets, Lock, AlertCircle, UserX, ShieldAlert } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useWuduScoring } from '@/hooks/useWuduScoring'
-import { getJudgeByUserId } from '@/services/wudu'
+import {
+  getJudgeByUserId,
+  getWuduScoredParticipantIds,
+  getWuduFinalizedParticipantIds,
+} from '@/services/wudu'
 import { getParticipants } from '@/services/participants'
 import { getJudges } from '@/services/judges'
 import ParticipantSelector from '@/components/scoring/ParticipantSelector'
@@ -29,12 +33,26 @@ export default function PenilaianWuduPage() {
   const [showFinalizeModal, setShowFinalizeModal] = useState(false)
   const [showResetModal, setShowResetModal] = useState(false)
 
+  // Scored participants tracking
+  const [scoredIds, setScoredIds] = useState<Set<string>>(new Set())
+  const [finalizedIds, setFinalizedIds] = useState<Set<string>>(new Set())
+
   // Active judge ID: juri uses their own, admin can select
   const activeJudgeId = isAdmin ? selectedJudgeId : currentJudge?.id ?? null
 
   const scoring = useWuduScoring(activeJudgeId, selectedParticipant?.id ?? null)
 
-  // ─── Init: load participants and resolve judge ─────────────────────────────
+  // ─── Load scored participant IDs for a judge ───────────────────────────────
+  const loadScoredIds = useCallback(async (judgeId: string) => {
+    const [scored, finalized] = await Promise.all([
+      getWuduScoredParticipantIds(judgeId),
+      getWuduFinalizedParticipantIds(judgeId),
+    ])
+    setScoredIds(new Set(scored))
+    setFinalizedIds(new Set(finalized))
+  }, [])
+
+  // ─── Init: load participants and resolve judge ─────────────────────────────────────────────────
   useEffect(() => {
     async function init() {
       if (!user) return
@@ -52,7 +70,10 @@ export default function PenilaianWuduPage() {
         const judges = judgesResp.data ?? []
         const wuduJudges = judges
         setAllJudges(wuduJudges)
-        if (wuduJudges.length > 0) setSelectedJudgeId(wuduJudges[0].id)
+        if (wuduJudges.length > 0) {
+          setSelectedJudgeId(wuduJudges[0].id)
+          await loadScoredIds(wuduJudges[0].id)
+        }
       } else {
         // Juri: find their judge record
         const judge = await getJudgeByUserId(user.id)
@@ -65,12 +86,20 @@ export default function PenilaianWuduPage() {
         }
         // Restriction removed: Juri can score all competitions
         setCurrentJudge(judge)
+        await loadScoredIds(judge.id)
       }
 
       setPageLoading(false)
     }
     init()
-  }, [user, isAdmin])
+  }, [user, isAdmin]) // eslint-disable-line
+
+  // Reload scored IDs when admin changes judge selection
+  useEffect(() => {
+    if (isAdmin && selectedJudgeId) {
+      loadScoredIds(selectedJudgeId)
+    }
+  }, [isAdmin, selectedJudgeId, loadScoredIds])
 
   const handleSave = useCallback(async () => {
     await scoring.saveAll()
@@ -86,16 +115,20 @@ export default function PenilaianWuduPage() {
   const handleFinalize = useCallback(async () => {
     await scoring.finalizeAll()
     setShowFinalizeModal(false)
-  }, [scoring])
+    // Refresh scored IDs after finalize
+    if (activeJudgeId) await loadScoredIds(activeJudgeId)
+  }, [scoring, activeJudgeId, loadScoredIds])
 
   const handleUnlock = useCallback(async () => {
     await scoring.unlockAll()
-  }, [scoring])
+    if (activeJudgeId) await loadScoredIds(activeJudgeId)
+  }, [scoring, activeJudgeId, loadScoredIds])
 
   const handleReset = useCallback(async () => {
     await scoring.resetAll()
     setShowResetModal(false)
-  }, [scoring])
+    if (activeJudgeId) await loadScoredIds(activeJudgeId)
+  }, [scoring, activeJudgeId, loadScoredIds])
 
   // ─── Access denied / page loading ─────────────────────────────────────────
   if (pageLoading) return <PageLoading />
@@ -117,6 +150,9 @@ export default function PenilaianWuduPage() {
     : currentJudge?.judge_name ?? user?.profile?.full_name ?? user?.email ?? '—'
 
   const isReadOnly = scoring.isFinalized && !isAdmin
+
+  // Hitung kriteria yang belum pernah diisi (score_id === undefined artinya belum ada record di DB)
+  const emptyCount = scoring.rows.filter((r) => r.score_id === undefined).length
 
   return (
     <div className="space-y-4 pb-36">
@@ -158,6 +194,8 @@ export default function PenilaianWuduPage() {
             participants={participants}
             selectedId={selectedParticipant?.id ?? null}
             onSelect={setSelectedParticipant}
+            scoredIds={scoredIds}
+            finalizedIds={finalizedIds}
           />
         </div>
 
@@ -228,35 +266,49 @@ export default function PenilaianWuduPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {scoring.rows.map((row, idx) => (
-                  <tr
-                    key={row.id}
-                    className={`transition-colors ${
-                      row.status === 'finalized' ? 'bg-slate-50/80' : 'hover:bg-blue-50/30'
-                    }`}
-                  >
-                    <td className="px-4 py-3 text-slate-400 font-medium text-center">{idx + 1}</td>
-                    <td className="px-4 py-3">
-                      <span className="text-slate-800 font-medium">{row.criteria_name}</span>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <span className="inline-flex items-center justify-center h-6 w-10 rounded-lg bg-blue-50 text-blue-700 font-bold text-xs">
-                        {row.maximum_score}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex justify-center">
-                        <ScoreInput
-                          id={`wudu-score-${row.id}`}
-                          value={row.score}
-                          maxValue={row.maximum_score}
-                          disabled={isReadOnly}
-                          onChange={(v) => scoring.updateScore(row.id, v, row.notes)}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {scoring.rows.map((row, idx) => {
+                  const isEmpty = row.score_id === undefined
+                  return (
+                    <tr
+                      key={row.id}
+                      className={`transition-colors ${
+                        row.status === 'finalized'
+                          ? 'bg-slate-50/80'
+                          : isEmpty
+                            ? 'bg-red-50/30 hover:bg-red-50/50'
+                            : 'hover:bg-blue-50/30'
+                      }`}
+                    >
+                      <td className="px-4 py-3 text-slate-400 font-medium text-center">{idx + 1}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-slate-800 font-medium">{row.criteria_name}</span>
+                          {isEmpty && (
+                            <span className="text-[10px] font-semibold text-red-500 bg-red-50 border border-red-200 rounded-full px-1.5 py-0.5 shrink-0">
+                              Kosong
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span className="inline-flex items-center justify-center h-6 w-10 rounded-lg bg-blue-50 text-blue-700 font-bold text-xs">
+                          {row.maximum_score}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex justify-center">
+                          <ScoreInput
+                            id={`wudu-score-${row.id}`}
+                            value={row.score}
+                            maxValue={row.maximum_score}
+                            disabled={isReadOnly}
+                            onChange={(v) => scoring.updateScore(row.id, v, row.notes)}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
               {/* Total row */}
               <tfoot>
@@ -279,35 +331,45 @@ export default function PenilaianWuduPage() {
 
           {/* Mobile: Cards */}
           <div className="md:hidden space-y-3">
-            {scoring.rows.map((row, idx) => (
-              <div
-                key={row.id}
-                className={`rounded-2xl border p-4 space-y-3 ${
-                  row.status === 'finalized'
-                    ? 'border-slate-200 bg-slate-50'
-                    : 'border-slate-200 bg-white'
-                }`}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-blue-700 text-xs font-bold shrink-0">
-                      {idx + 1}
+            {scoring.rows.map((row, idx) => {
+              const isEmpty = row.score_id === undefined
+              return (
+                <div
+                  key={row.id}
+                  className={`rounded-2xl border p-4 space-y-3 ${
+                    row.status === 'finalized'
+                      ? 'border-slate-200 bg-slate-50'
+                      : isEmpty
+                        ? 'border-red-200 bg-red-50/30'
+                        : 'border-slate-200 bg-white'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-blue-700 text-xs font-bold shrink-0">
+                        {idx + 1}
+                      </span>
+                      <span className="text-sm font-medium text-slate-800">{row.criteria_name}</span>
+                      {isEmpty && (
+                        <span className="text-[10px] font-semibold text-red-500 bg-red-50 border border-red-200 rounded-full px-1.5 py-0.5">
+                          Kosong
+                        </span>
+                      )}
+                    </div>
+                    <span className="shrink-0 text-xs font-medium text-slate-500">
+                      Maks: <span className="font-bold text-blue-600">{row.maximum_score}</span>
                     </span>
-                    <span className="text-sm font-medium text-slate-800">{row.criteria_name}</span>
                   </div>
-                  <span className="shrink-0 text-xs font-medium text-slate-500">
-                    Maks: <span className="font-bold text-blue-600">{row.maximum_score}</span>
-                  </span>
+                  <ScoreInput
+                    id={`wudu-score-mobile-${row.id}`}
+                    value={row.score}
+                    maxValue={row.maximum_score}
+                    disabled={isReadOnly}
+                    onChange={(v) => scoring.updateScore(row.id, v, row.notes)}
+                  />
                 </div>
-                <ScoreInput
-                  id={`wudu-score-mobile-${row.id}`}
-                  value={row.score}
-                  maxValue={row.maximum_score}
-                  disabled={isReadOnly}
-                  onChange={(v) => scoring.updateScore(row.id, v, row.notes)}
-                />
-              </div>
-            ))}
+              )
+            })}
 
             {/* Mobile total card */}
             <div className="rounded-2xl border-2 border-blue-200 bg-blue-50 p-4">
@@ -359,6 +421,7 @@ export default function PenilaianWuduPage() {
         maxScore={100}
         participantNumber={selectedParticipant?.participant_number ?? '—'}
         loading={scoring.actionLoading}
+        emptyCount={emptyCount}
       />
 
       <ConfirmModal

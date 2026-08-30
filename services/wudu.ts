@@ -135,6 +135,34 @@ export async function deleteWuduScores(
   return { data: null, error: null }
 }
 
+// ─── Get all participant IDs that have wudu scores for a judge ───────────────
+export async function getWuduScoredParticipantIds(judgeId: string): Promise<string[]> {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('wudu_scores')
+    .select('participant_id, status')
+    .eq('judge_id', judgeId)
+
+  if (error) return []
+  // Return unique participant IDs that have at least one score record
+  const ids = new Set<string>((data ?? []).map((r) => r.participant_id))
+  return Array.from(ids)
+}
+
+// ─── Get all participant IDs that have finalized wudu scores for a judge ──────
+export async function getWuduFinalizedParticipantIds(judgeId: string): Promise<string[]> {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('wudu_scores')
+    .select('participant_id')
+    .eq('judge_id', judgeId)
+    .eq('status', 'finalized')
+
+  if (error) return []
+  const ids = new Set<string>((data ?? []).map((r) => r.participant_id))
+  return Array.from(ids)
+}
+
 // ─── Get judge record by user auth id ────────────────────────────────────────
 export async function getJudgeByUserId(userId: string) {
   const supabase = createClient()

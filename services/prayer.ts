@@ -136,3 +136,30 @@ export async function deletePrayerScores(
   if (error) return { data: null, error: error.message }
   return { data: null, error: null }
 }
+
+// ─── Get all participant IDs that have prayer scores for a judge ──────────────
+export async function getPrayerScoredParticipantIds(judgeId: string): Promise<string[]> {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('prayer_scores')
+    .select('participant_id, status')
+    .eq('judge_id', judgeId)
+
+  if (error) return []
+  const ids = new Set<string>((data ?? []).map((r) => r.participant_id))
+  return Array.from(ids)
+}
+
+// ─── Get all participant IDs that have finalized prayer scores for a judge ────
+export async function getPrayerFinalizedParticipantIds(judgeId: string): Promise<string[]> {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('prayer_scores')
+    .select('participant_id')
+    .eq('judge_id', judgeId)
+    .eq('status', 'finalized')
+
+  if (error) return []
+  const ids = new Set<string>((data ?? []).map((r) => r.participant_id))
+  return Array.from(ids)
+}

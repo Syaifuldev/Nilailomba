@@ -5,6 +5,10 @@ import { Church, Lock, AlertCircle, ShieldAlert } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { usePrayerScoring } from '@/hooks/usePrayerScoring'
 import { getJudgeByUserId } from '@/services/wudu'
+import {
+  getPrayerScoredParticipantIds,
+  getPrayerFinalizedParticipantIds,
+} from '@/services/prayer'
 import { getParticipants } from '@/services/participants'
 import { getJudges } from '@/services/judges'
 import ParticipantSelector from '@/components/scoring/ParticipantSelector'
@@ -74,8 +78,22 @@ export default function PenilaianSalatPage() {
   const [showFinalizeModal, setShowFinalizeModal] = useState(false)
   const [showResetModal, setShowResetModal] = useState(false)
 
+  // Scored participants tracking
+  const [scoredIds, setScoredIds] = useState<Set<string>>(new Set())
+  const [finalizedIds, setFinalizedIds] = useState<Set<string>>(new Set())
+
   const activeJudgeId = isAdmin ? selectedJudgeId : currentJudge?.id ?? null
   const scoring = usePrayerScoring(activeJudgeId, selectedParticipant?.id ?? null)
+
+  // ─── Load scored participant IDs for a judge ───────────────────────────────
+  const loadScoredIds = useCallback(async (judgeId: string) => {
+    const [scored, finalized] = await Promise.all([
+      getPrayerScoredParticipantIds(judgeId),
+      getPrayerFinalizedParticipantIds(judgeId),
+    ])
+    setScoredIds(new Set(scored))
+    setFinalizedIds(new Set(finalized))
+  }, [])
 
   useEffect(() => {
     async function init() {
@@ -93,7 +111,10 @@ export default function PenilaianSalatPage() {
         const judges = judgesResp.data ?? []
         const salatJudges = judges
         setAllJudges(salatJudges)
-        if (salatJudges.length > 0) setSelectedJudgeId(salatJudges[0].id)
+        if (salatJudges.length > 0) {
+          setSelectedJudgeId(salatJudges[0].id)
+          await loadScoredIds(salatJudges[0].id)
+        }
       } else {
         const judge = await getJudgeByUserId(user.id)
         if (!judge) {
@@ -105,12 +126,20 @@ export default function PenilaianSalatPage() {
         }
         // Restriction removed: Juri can score all competitions
         setCurrentJudge(judge)
+        await loadScoredIds(judge.id)
       }
 
       setPageLoading(false)
     }
     init()
-  }, [user, isAdmin])
+  }, [user, isAdmin]) // eslint-disable-line
+
+  // Reload scored IDs when admin changes judge selection
+  useEffect(() => {
+    if (isAdmin && selectedJudgeId) {
+      loadScoredIds(selectedJudgeId)
+    }
+  }, [isAdmin, selectedJudgeId, loadScoredIds])
 
   const handleSave = useCallback(async () => { await scoring.saveAll() }, [scoring])
   const handleDraft = useCallback(async () => {
@@ -121,12 +150,17 @@ export default function PenilaianSalatPage() {
   const handleFinalize = useCallback(async () => {
     await scoring.finalizeAll()
     setShowFinalizeModal(false)
-  }, [scoring])
-  const handleUnlock = useCallback(async () => { await scoring.unlockAll() }, [scoring])
+    if (activeJudgeId) await loadScoredIds(activeJudgeId)
+  }, [scoring, activeJudgeId, loadScoredIds])
+  const handleUnlock = useCallback(async () => {
+    await scoring.unlockAll()
+    if (activeJudgeId) await loadScoredIds(activeJudgeId)
+  }, [scoring, activeJudgeId, loadScoredIds])
   const handleReset = useCallback(async () => {
     await scoring.resetAll()
     setShowResetModal(false)
-  }, [scoring])
+    if (activeJudgeId) await loadScoredIds(activeJudgeId)
+  }, [scoring, activeJudgeId, loadScoredIds])
 
   if (pageLoading) return <PageLoading />
 
@@ -147,6 +181,9 @@ export default function PenilaianSalatPage() {
     : currentJudge?.judge_name ?? user?.profile?.full_name ?? user?.email ?? '—'
 
   const isReadOnly = scoring.isFinalized && !isAdmin
+
+  // Hitung grup yang belum pernah diisi (score_id === undefined artinya belum ada record di DB)
+  const emptyCount = scoring.rows.filter((r) => r.score_id === undefined).length
 
   return (
     <div className="space-y-4 pb-36">
@@ -188,6 +225,8 @@ export default function PenilaianSalatPage() {
             participants={participants}
             selectedId={selectedParticipant?.id ?? null}
             onSelect={setSelectedParticipant}
+            scoredIds={scoredIds}
+            finalizedIds={finalizedIds}
           />
         </div>
 
@@ -259,11 +298,16 @@ export default function PenilaianSalatPage() {
               <tbody className="divide-y divide-slate-100">
                 {scoring.rows.map((row, idx) => {
                   const criteriaList = row.criteria_names
+                  const isEmpty = row.score_id === undefined
                   return (
                     <tr
                       key={row.id}
                       className={`transition-colors ${
-                        row.status === 'finalized' ? 'bg-slate-50/80' : 'hover:bg-purple-50/20'
+                        row.status === 'finalized'
+                          ? 'bg-slate-50/80'
+                          : isEmpty
+                            ? 'bg-red-50/30 hover:bg-red-50/50'
+                            : 'hover:bg-purple-50/20'
                       }`}
                     >
                       {/* Numbers */}
@@ -272,7 +316,14 @@ export default function PenilaianSalatPage() {
                       </td>
                       {/* Criteria names */}
                       <td className="px-3 py-3 align-top">
-                        <p className="text-xs font-semibold text-purple-700 mb-1">{row.group_name}</p>
+                        <div className="flex items-start gap-2 mb-1">
+                          <p className="text-xs font-semibold text-purple-700">{row.group_name}</p>
+                          {isEmpty && (
+                            <span className="text-[10px] font-semibold text-red-500 bg-red-50 border border-red-200 rounded-full px-1.5 py-0.5 shrink-0">
+                              Kosong
+                            </span>
+                          )}
+                        </div>
                         <ul className="space-y-0.5">
                           {criteriaList.map((name, i) => (
                             <li key={i} className="text-xs text-slate-600 flex gap-1.5">
@@ -337,59 +388,71 @@ export default function PenilaianSalatPage() {
 
           {/* Mobile + Tablet: Cards */}
           <div className="lg:hidden space-y-3">
-            {scoring.rows.map((row, idx) => (
-              <div
-                key={row.id}
-                className={`rounded-2xl border p-4 space-y-3 ${
-                  row.status === 'finalized'
-                    ? 'border-slate-200 bg-slate-50'
-                    : 'border-slate-200 bg-white'
-                }`}
-              >
-                {/* Group header */}
-                <div>
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <p className="text-sm font-semibold text-purple-700">{row.group_name}</p>
-                    <span className="shrink-0 text-xs font-medium text-slate-500">
-                      Maks: <span className="font-bold text-purple-600">{row.maximum_score}</span>
-                    </span>
+            {scoring.rows.map((row, idx) => {
+              const isEmpty = row.score_id === undefined
+              return (
+                <div
+                  key={row.id}
+                  className={`rounded-2xl border p-4 space-y-3 ${
+                    row.status === 'finalized'
+                      ? 'border-slate-200 bg-slate-50'
+                      : isEmpty
+                        ? 'border-red-200 bg-red-50/30'
+                        : 'border-slate-200 bg-white'
+                  }`}
+                >
+                  {/* Group header */}
+                  <div>
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-purple-700">{row.group_name}</p>
+                        {isEmpty && (
+                          <span className="text-[10px] font-semibold text-red-500 bg-red-50 border border-red-200 rounded-full px-1.5 py-0.5 shrink-0">
+                            Kosong
+                          </span>
+                        )}
+                      </div>
+                      <span className="shrink-0 text-xs font-medium text-slate-500">
+                        Maks: <span className="font-bold text-purple-600">{row.maximum_score}</span>
+                      </span>
+                    </div>
+                    {/* Criteria list */}
+                    <ul className="space-y-0.5 mb-2">
+                      {row.criteria_names.map((name, i) => (
+                        <li key={i} className="text-xs text-slate-500 flex gap-1.5">
+                          <span className="text-slate-300 shrink-0">{row.criteria_numbers[i]}.</span>
+                          <span>{name}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                  {/* Criteria list */}
-                  <ul className="space-y-0.5 mb-2">
-                    {row.criteria_names.map((name, i) => (
-                      <li key={i} className="text-xs text-slate-500 flex gap-1.5">
-                        <span className="text-slate-300 shrink-0">{row.criteria_numbers[i]}.</span>
-                        <span>{name}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
 
-                {/* Error count */}
-                <div className="flex items-center gap-3">
-                  <label className="text-xs font-medium text-slate-600 w-28">Jml Kesalahan:</label>
-                  <ErrorInput
-                    value={row.error_count}
-                    disabled={isReadOnly}
-                    onChange={(v) => scoring.updateScore(row.id, v, row.score, row.notes)}
-                    className="w-20 h-9 text-center font-semibold rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-400 disabled:bg-slate-50 disabled:text-slate-400 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
-                    id={`salat-error-mobile-${row.id}`}
-                  />
-                </div>
+                  {/* Error count */}
+                  <div className="flex items-center gap-3">
+                    <label className="text-xs font-medium text-slate-600 w-28">Jml Kesalahan:</label>
+                    <ErrorInput
+                      value={row.error_count}
+                      disabled={isReadOnly}
+                      onChange={(v) => scoring.updateScore(row.id, v, row.score, row.notes)}
+                      className="w-20 h-9 text-center font-semibold rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-400 disabled:bg-slate-50 disabled:text-slate-400 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
+                      id={`salat-error-mobile-${row.id}`}
+                    />
+                  </div>
 
-                {/* Score input */}
-                <div>
-                  <label className="text-xs font-medium text-slate-600 block mb-2">Nilai:</label>
-                  <ScoreInput
-                    id={`salat-score-mobile-${row.id}`}
-                    value={row.score}
-                    maxValue={row.maximum_score}
-                    disabled={isReadOnly}
-                    onChange={(v) => scoring.updateScore(row.id, row.error_count, v, row.notes)}
-                  />
+                  {/* Score input */}
+                  <div>
+                    <label className="text-xs font-medium text-slate-600 block mb-2">Nilai:</label>
+                    <ScoreInput
+                      id={`salat-score-mobile-${row.id}`}
+                      value={row.score}
+                      maxValue={row.maximum_score}
+                      disabled={isReadOnly}
+                      onChange={(v) => scoring.updateScore(row.id, row.error_count, v, row.notes)}
+                    />
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
 
             {/* Mobile total card */}
             <div className="rounded-2xl border-2 border-purple-200 bg-purple-50 p-4">
@@ -441,6 +504,7 @@ export default function PenilaianSalatPage() {
         maxScore={250}
         participantNumber={selectedParticipant?.participant_number ?? '—'}
         loading={scoring.actionLoading}
+        emptyCount={emptyCount}
       />
 
       <ConfirmModal
