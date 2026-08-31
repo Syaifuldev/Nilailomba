@@ -359,6 +359,7 @@ export default function PenilaianSalatPage() {
                             value={row.score}
                             maxValue={row.maximum_score}
                             disabled={isReadOnly}
+                            isEmpty={isEmpty}
                             onChange={(v) => scoring.updateScore(row.id, row.error_count, v, row.notes)}
                           />
                         </div>
@@ -447,6 +448,7 @@ export default function PenilaianSalatPage() {
                       value={row.score}
                       maxValue={row.maximum_score}
                       disabled={isReadOnly}
+                      isEmpty={isEmpty}
                       onChange={(v) => scoring.updateScore(row.id, row.error_count, v, row.notes)}
                     />
                   </div>

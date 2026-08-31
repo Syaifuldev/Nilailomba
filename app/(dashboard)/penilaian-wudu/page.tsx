@@ -302,6 +302,7 @@ export default function PenilaianWuduPage() {
                             value={row.score}
                             maxValue={row.maximum_score}
                             disabled={isReadOnly}
+                            isEmpty={isEmpty}
                             onChange={(v) => scoring.updateScore(row.id, v, row.notes)}
                           />
                         </div>
@@ -365,6 +366,7 @@ export default function PenilaianWuduPage() {
                     value={row.score}
                     maxValue={row.maximum_score}
                     disabled={isReadOnly}
+                    isEmpty={isEmpty}
                     onChange={(v) => scoring.updateScore(row.id, v, row.notes)}
                   />
                 </div>

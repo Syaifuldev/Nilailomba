@@ -8,25 +8,34 @@ interface Props {
   value: number
   maxValue: number
   disabled?: boolean
+  /** Jika true dan value === 0, tampilkan input kosong dengan placeholder "0" (belum diisi) */
+  isEmpty?: boolean
   onChange: (value: number) => void
 }
 
-export default function ScoreInput({ id, value, maxValue, disabled, onChange }: Props) {
-  const [inputVal, setInputVal] = useState(String(value))
+export default function ScoreInput({ id, value, maxValue, disabled, isEmpty, onChange }: Props) {
+  // Saat isEmpty aktif dan nilai 0, tampilkan string kosong supaya placeholder terlihat
+  const [inputVal, setInputVal] = useState(isEmpty && value === 0 ? '' : String(value))
   const isOverMax = value > maxValue
   const isNegative = value < 0
 
   // Sync when parent value changes (e.g. on load)
   useEffect(() => {
-    setInputVal(String(value))
-  }, [value])
+    setInputVal(isEmpty && value === 0 ? '' : String(value))
+  }, [value, isEmpty])
 
   const clamp = (v: number) => Math.min(Math.max(v, 0), maxValue)
 
   const commit = (raw: string) => {
+    if (raw === '' || raw === null) {
+      // Kosong dianggap 0
+      setInputVal(isEmpty ? '' : '0')
+      if (value !== 0) onChange(0)
+      return
+    }
     const n = parseFloat(raw)
     if (isNaN(n)) {
-      setInputVal(String(value))
+      setInputVal(isEmpty && value === 0 ? '' : String(value))
       return
     }
     const clamped = clamp(n)
@@ -47,6 +56,9 @@ export default function ScoreInput({ id, value, maxValue, disabled, onChange }: 
   }
 
   const pct = maxValue > 0 ? Math.min((value / maxValue) * 100, 100) : 0
+
+  // Apakah sedang dalam kondisi placeholder (belum ada nilai nyata)
+  const showingPlaceholder = isEmpty && value === 0 && inputVal === ''
 
   return (
     <div className="flex flex-col gap-1 items-end">
@@ -72,6 +84,7 @@ export default function ScoreInput({ id, value, maxValue, disabled, onChange }: 
             max={maxValue}
             step={1}
             value={inputVal}
+            placeholder={showingPlaceholder ? '0' : undefined}
             disabled={disabled}
             onChange={(e) => setInputVal(e.target.value)}
             onBlur={(e) => commit(e.target.value)}
@@ -81,10 +94,13 @@ export default function ScoreInput({ id, value, maxValue, disabled, onChange }: 
               if (e.key === 'ArrowDown') { e.preventDefault(); decrement() }
             }}
             className={`w-16 h-10 text-center font-bold text-lg rounded-xl border transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/20 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none
+              placeholder:text-slate-300 placeholder:font-normal
               ${disabled
                 ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed'
                 : isOverMax || isNegative
                 ? 'border-red-400 bg-red-50 text-red-600 focus:ring-red-500/20 focus:border-red-400'
+                : showingPlaceholder
+                ? 'border-slate-200 bg-slate-50/50 text-slate-900 focus:border-blue-400 focus:bg-white'
                 : 'border-slate-300 bg-white text-slate-900 focus:border-blue-400'
               }`}
           />
