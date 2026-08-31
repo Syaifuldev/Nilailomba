@@ -25,35 +25,47 @@ function ErrorInput({
   disabled,
   onChange,
   id,
-  className
+  className,
+  isEmpty,
 }: {
   value: number
   disabled: boolean
   onChange: (v: number) => void
   id: string
   className: string
+  /** Jika true dan value === 0, tampilkan kosong dengan placeholder "0" (belum diisi) */
+  isEmpty?: boolean
 }) {
-  const [val, setVal] = useState(value.toString())
-  useEffect(() => setVal(value.toString()), [value])
+  const [val, setVal] = useState(isEmpty && value === 0 ? '' : value.toString())
+  useEffect(() => setVal(isEmpty && value === 0 ? '' : value.toString()), [value, isEmpty])
+
+  const showingPlaceholder = isEmpty && value === 0 && val === ''
 
   return (
     <input
       type="number"
       min={0}
       value={val}
+      placeholder={showingPlaceholder ? '0' : undefined}
       disabled={disabled}
       onChange={(e) => setVal(e.target.value)}
       onBlur={(e) => {
-        const n = parseInt(e.target.value)
+        const raw = e.target.value
+        if (raw === '') {
+          setVal(isEmpty ? '' : '0')
+          if (value !== 0) onChange(0)
+          return
+        }
+        const n = parseInt(raw)
         if (isNaN(n)) {
-          setVal(value.toString())
+          setVal(isEmpty && value === 0 ? '' : value.toString())
         } else {
           const clamped = Math.max(0, n)
           setVal(clamped.toString())
           if (clamped !== value) onChange(clamped)
         }
       }}
-      className={className}
+      className={`${className} placeholder:text-slate-300 placeholder:font-normal${showingPlaceholder ? ' bg-slate-50/50' : ''}`}
       id={id}
     />
   )
@@ -345,6 +357,7 @@ export default function PenilaianSalatPage() {
                           <ErrorInput
                             value={row.error_count}
                             disabled={isReadOnly}
+                            isEmpty={isEmpty}
                             onChange={(v) => scoring.updateScore(row.id, v, row.score, row.notes)}
                             className="w-16 h-9 text-center font-semibold rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-400 disabled:bg-slate-50 disabled:text-slate-400 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
                             id={`salat-error-${row.id}`}
@@ -434,6 +447,7 @@ export default function PenilaianSalatPage() {
                     <ErrorInput
                       value={row.error_count}
                       disabled={isReadOnly}
+                      isEmpty={isEmpty}
                       onChange={(v) => scoring.updateScore(row.id, v, row.score, row.notes)}
                       className="w-20 h-9 text-center font-semibold rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-400 disabled:bg-slate-50 disabled:text-slate-400 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
                       id={`salat-error-mobile-${row.id}`}
